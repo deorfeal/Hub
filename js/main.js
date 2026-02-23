@@ -239,6 +239,44 @@ if (document.querySelector(".keyboard")) {
   })();
 }
 
+if (document.querySelector(".filters-types")) {
+  const filters = document.querySelector(".filters");
+  const items = document.querySelectorAll(".filters-types__item");
+
+  items.forEach((item) => {
+    item.addEventListener("click", () => {
+      items.forEach((el) => el.classList.remove("filters-types__item--active"));
+      item.classList.add("filters-types__item--active");
+
+      if (item.classList.contains("filters-types__item--list")) {
+        filters.classList.remove("filters--tiles");
+        filters.classList.add("filters--list");
+      } else {
+        filters.classList.remove("filters--list");
+        filters.classList.add("filters--tiles");
+      }
+    });
+  });
+}
+
+if (document.querySelector(".filters-form")) {
+  document.querySelectorAll(".tags-list__checkbox").forEach((checkbox) => {
+    // Синхронизируем начальное состояние
+    if (checkbox.checked) {
+      checkbox.closest(".tags-list__label").classList.add("tag--active");
+    }
+
+    checkbox.addEventListener("change", () => {
+      const label = checkbox.closest(".tags-list__label");
+      if (checkbox.checked) {
+        label.classList.add("tag--active");
+      } else {
+        label.classList.remove("tag--active");
+      }
+    });
+  });
+}
+
 // (function () {
 //   const layouts = {
 //     ru: {
@@ -607,6 +645,7 @@ $(function () {
     var $popup = $(".popup");
     var $popups = {
       search: $(".popup--search"),
+      filters: $(".popup--filters"),
     };
 
     // Функция для показа попапа
@@ -630,6 +669,13 @@ $(function () {
       event.stopPropagation();
       event.preventDefault();
       showPopup($popups.search);
+    });
+
+    // Обработчики кликов для показа попапов
+    $(".actions__button--tags").click(function (event) {
+      event.stopPropagation();
+      event.preventDefault();
+      showPopup($popups.filters);
     });
 
     // Обработчик кликов для скрытия попапов

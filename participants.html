@@ -434,13 +434,13 @@
                                     </div>
                                     <div class="bottom__tags tags">
                                         <ul class="tags__list tags-list">
-                                            <li class="tags-list__tag tag tag--lavender">
+                                            <li class="tags-list__tag tag tag--spheres">
                                                 сферы деятельности
                                             </li>
-                                            <li class="tags-list__tag tag tag--magenta">
+                                            <li class="tags-list__tag tag tag--technologies">
                                                 технологии
                                             </li>
-                                            <li class="tags-list__tag tag tag--periwinkle">
+                                            <li class="tags-list__tag tag tag--participants">
                                                 участники
                                             </li>
                                         </ul>
@@ -481,7 +481,7 @@
                                     <input class="form__input" id="search-input" type="text"
                                         placeholder="Введите текст">
                                 </form>
-                                <div class="search__close cls">
+                                <div class="search__close close cls">
                                     <svg width="62" height="62" viewBox="0 0 62 62" fill="none"
                                         xmlns="http://www.w3.org/2000/svg">
                                         <rect x="4.71484" width="80" height="6.66667" transform="rotate(45 4.71484 0)"
@@ -493,13 +493,13 @@
                             </div>
                             <div class="search__tags tags">
                                 <ul class="tags__list tags-list">
-                                    <li class="tags-list__tag tag tag--lavender">
+                                    <li class="tags-list__tag tag tag--spheres">
                                         сферы деятельности
                                     </li>
-                                    <li class="tags-list__tag tag tag--magenta">
+                                    <li class="tags-list__tag tag tag--technologies">
                                         технологии
                                     </li>
-                                    <li class="tags-list__tag tag tag--periwinkle">
+                                    <li class="tags-list__tag tag tag--participants">
                                         участники
                                     </li>
                                 </ul>
@@ -562,6 +562,342 @@
                                 </div>
                                 <div id="kb-rows"></div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="popup popup--filters">
+                <div class="popup__wrapper">
+                    <div class="popup__inner">
+                        <div class="popup__filters filters">
+                            <div class="filters__types filters-types">
+                                <div class="filters-types__item filters-types__item--list">
+                                    <svg width="39" height="32" viewBox="0 0 39 32" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <rect width="6" height="6" fill="white" />
+                                        <rect y="13" width="6" height="6" fill="white" />
+                                        <rect y="26" width="6" height="6" fill="white" />
+                                        <rect x="11" width="28" height="6" fill="white" />
+                                        <rect x="11" y="13" width="28" height="6" fill="white" />
+                                        <rect x="11" y="26" width="28" height="6" fill="white" />
+                                    </svg>
+                                    <span>
+                                        Показать списком
+                                    </span>
+                                </div>
+                                <div class="filters-types__item filters-types__item--tiles">
+                                    <svg width="40" height="34" viewBox="0 0 40 34" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <rect width="18" height="15" fill="white" />
+                                        <rect y="19" width="18" height="15" fill="white" />
+                                        <rect x="22" width="18" height="15" fill="white" />
+                                        <rect x="22" y="19" width="18" height="15" fill="white" />
+                                    </svg>
+                                    <span>
+                                        Показать плиткой
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="filters__close close close cls">
+                                <svg width="62" height="62" viewBox="0 0 62 62" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="4.71484" width="80" height="6.66667" transform="rotate(45 4.71484 0)"
+                                        fill="#00FF5D" />
+                                    <rect x="61.2812" y="4.71484" width="80" height="6.66667"
+                                        transform="rotate(135 61.2812 4.71484)" fill="#00FF5D" />
+                                </svg>
+                            </div>
+                            <form class="filters__form filters-form">
+                                <div class="filters-form__inner">
+                                    <div class="filters-form__item filters-item filters-item--spheres">
+                                        <h5 class="filters-item__title">
+                                            [Сферы деятельности]
+                                        </h5>
+                                        <div class="filters-item__tags tags tags--filter">
+                                            <ul class="tags__list tags-list">
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--disabled tag--spheres">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="spheres" value="hardware" disabled>
+                                                        аппаратное обеспечение
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--disabled tag--spheres">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="spheres" value="big-data" disabled>
+                                                        большие данные
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--disabled tag--spheres">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="spheres" value="big-data-2" disabled>
+                                                        большие данные
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--spheres">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="spheres" value="inclusivity">
+                                                        инклюзивность
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--spheres">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="spheres" value="ai">
+                                                        искуственный интелект
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--spheres">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="spheres" value="hr">
+                                                        кадры и подбор персонала
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--spheres">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="spheres" value="cybersecurity">
+                                                        кибербезопасность
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--active tag--spheres">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="spheres" value="marketing" checked>
+                                                        маркетинг
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--spheres">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="spheres" value="medicine">
+                                                        медицина
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--spheres">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="spheres" value="industry">
+                                                        промышленность
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--active tag--spheres">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="spheres" value="education" checked>
+                                                        образование
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--spheres">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="spheres" value="software">
+                                                        разработка по
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--disabled tag--spheres">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="spheres" value="gamedev" disabled>
+                                                        разработка игр
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--disabled tag--spheres">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="spheres" value="marketplace" disabled>
+                                                        торговая площадка
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--disabled tag--spheres">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="spheres" value="transport" disabled>
+                                                        транспорт и логистика
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--disabled tag--spheres">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="spheres" value="smart-city" disabled>
+                                                        умный город
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--active tag--spheres">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="spheres" value="finance" checked>
+                                                        финансы
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--spheres">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="spheres" value="datacenter">
+                                                        центр обработки данных
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--spheres">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="spheres" value="ecommerce">
+                                                        электронная коммерция
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--active tag--spheres">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="spheres" value="it-school" checked>
+                                                        it-школа
+                                                    </label>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="filters-form__item filters-item filters-item--technologies">
+                                        <h5 class="filters-item__title">
+                                            [Технологии]
+                                        </h5>
+                                        <div class="filters-item__tags tags tags--filter">
+                                            <ul class="tags__list tags-list">
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--disabled tag--technologies">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="technologies" value="drone" disabled>
+                                                        бпла
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--active tag--technologies">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="technologies" value="ai-agents" checked>
+                                                        ии-агенты
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--disabled tag--technologies">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="technologies" value="computer-vision" disabled>
+                                                        компьютерное зрение
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--disabled tag--technologies">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="technologies" value="speech" disabled>
+                                                        распознавание речи
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--technologies">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="technologies" value="web">
+                                                        web
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--technologies">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="technologies" value="crm">
+                                                        crm
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--technologies">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="technologies" value="backend">
+                                                        backend
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--disabled tag--technologies">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="technologies" value="bi" disabled>
+                                                        bi аналитика
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--disabled tag--technologies">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="technologies" value="data-science" disabled>
+                                                        data science
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--disabled tag--technologies">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="technologies" value="design" disabled>
+                                                        design ux/ui
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--technologies">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="technologies" value="erp">
+                                                        erp
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--technologies">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="technologies" value="frontend">
+                                                        frontend
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--technologies">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="technologies" value="lms">
+                                                        lms
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--technologies">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="technologies" value="nlp">
+                                                        nlp
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--active tag--technologies">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="technologies" value="saas" checked>
+                                                        saas
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--technologies">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="technologies" value="usdt">
+                                                        usdt/usdc
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--technologies">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="technologies" value="vr">
+                                                        vr
+                                                    </label>
+                                                </li>
+                                                <li class="tags-list__item">
+                                                    <label class="tags-list__label tag tag--technologies">
+                                                        <input class="tags-list__checkbox" type="checkbox"
+                                                            name="technologies" value="wms">
+                                                        wms
+                                                    </label>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button class="filters-form__submit">
+                                    показать компании
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
