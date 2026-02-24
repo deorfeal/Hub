@@ -14,6 +14,323 @@
 
 //
 
+// Функция активации
+function activateBody() {
+  document.body.classList.add("body--actived");
+  // Убираем обработчик, чтобы сработало только один раз
+  document.removeEventListener("click", activateBody);
+}
+
+// Ставим обработчик на весь документ
+document.addEventListener("click", activateBody);
+
+//
+
+if (document.querySelector(".bundle")) {
+  const BUNDLE_CONFIG = {
+    itemSize: 520,       // rem
+    itemSizeMobile: 360, // rem
+    gap: 100,            // rem
+    padding: 80,         // rem
+    breakpoint: 1440,    // px — только для window.innerWidth
+  };
+
+  (function () {
+    "use strict";
+
+    const { gap, padding, breakpoint } = BUNDLE_CONFIG;
+
+    // ─── НАЙТИ ЭЛЕМЕНТЫ ──────────────────────────────────────────────────────
+    const bundleInner = document.querySelector(".bundle__inner");
+    if (!bundleInner)
+      return console.warn("[BundleGrid] .bundle__inner не найден");
+
+    const allItems = Array.from(
+      bundleInner.querySelectorAll(":scope > .bundle__item"),
+    );
+    const bottomEl = bundleInner.querySelector(".bundle__bottom");
+
+    if (!allItems.length)
+      return console.warn("[BundleGrid] .bundle__item не найдены");
+
+    // ─── RESPONSIVE ──────────────────────────────────────────────────────────
+    const isMobile = () => window.innerWidth < breakpoint;
+
+    function getItemSize() {
+      return isMobile() ? BUNDLE_CONFIG.itemSizeMobile : BUNDLE_CONFIG.itemSize;
+    }
+
+    // ─── rem → px (для расчётов позиций и clamp) ─────────────────────────────
+    function remToPx(rem) {
+      return rem * parseFloat(getComputedStyle(document.documentElement).fontSize);
+    }
+
+    // ─── ВЫЧИСЛИТЬ СЕТКУ (в rem) ─────────────────────────────────────────────
+    const count = allItems.length;
+    const cols = Math.ceil(Math.sqrt(count));
+    const rows = Math.ceil(count / cols);
+
+    function getTotalSizeRem() {
+      const size = getItemSize();
+      return {
+        totalW: cols * size + (cols - 1) * gap,
+        totalH: rows * size + (rows - 1) * gap,
+      };
+    }
+
+    // Размеры в px нужны только для расчётов смещений (offsetX/Y, clamp, center)
+    function getTotalSizePx() {
+      const { totalW, totalH } = getTotalSizeRem();
+      return {
+        totalW: remToPx(totalW),
+        totalH: remToPx(totalH),
+      };
+    }
+
+    // ─── ПОДГОТОВИТЬ КОНТЕЙНЕР ───────────────────────────────────────────────
+    Object.assign(bundleInner.style, {
+      position: "absolute",
+      top: "0",
+      left: "0",
+      willChange: "transform",
+    });
+
+    const bundleEl =
+      bundleInner.closest(".bundle") || bundleInner.parentElement;
+    Object.assign(bundleEl.style, {
+      position: "relative",
+      overflow: "hidden",
+      cursor: "grab",
+    });
+
+    function updateBundleSize() {
+      if (isMobile()) {
+        Object.assign(bundleEl.style, {
+          width: "100vw",
+          height: "100vh",
+        });
+      } else {
+        bundleEl.style.width = "";
+        bundleEl.style.height = "";
+      }
+    }
+
+    // ─── РАЗЛОЖИТЬ ITEMS ─────────────────────────────────────────────────────
+    function layoutItems() {
+      const size = getItemSize();
+      const { totalW, totalH } = getTotalSizeRem();
+
+      bundleInner.style.width  = totalW + "rem";
+      bundleInner.style.height = totalH + "rem";
+
+      allItems.forEach((item, i) => {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        Object.assign(item.style, {
+          position:   "absolute",
+          left:       col * (size + gap) + "rem",
+          top:        row * (size + gap) + "rem",
+          width:      size + "rem",
+          height:     size + "rem",
+          flexShrink: "0",
+        });
+      });
+    }
+
+    // ─── BOTTOM БЛОК ─────────────────────────────────────────────────────────
+    if (bottomEl) {
+      bundleEl.appendChild(bottomEl);
+      Object.assign(bottomEl.style, {
+        position: "fixed",
+        bottom: "0",
+        left: "0",
+        right: "0",
+        zIndex: "100",
+      });
+    }
+
+    // ─── DRAG STATE ──────────────────────────────────────────────────────────
+    // offsetX/Y хранятся в px — это реальные экранные координаты мыши/тача
+    let offsetX = 0;
+    let offsetY = 0;
+
+    function getViewport() {
+      return { vw: bundleEl.offsetWidth, vh: bundleEl.offsetHeight };
+    }
+
+    function applyTransform(snap) {
+      if (snap) {
+        bundleInner.style.transition =
+          "transform 0.45s cubic-bezier(0.22, 1, 0.36, 1)";
+        setTimeout(() => (bundleInner.style.transition = "none"), 450);
+      } else {
+        bundleInner.style.transition = "none";
+      }
+      // transform: translate всегда в px — это пиксели экрана
+      bundleInner.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+    }
+
+    function clampOffset(x, y) {
+      const { vw, vh }         = getViewport();
+      const { totalW, totalH } = getTotalSizePx();
+      const paddingPx          = remToPx(padding);
+
+      const cx =
+        totalW <= vw
+          ? (vw - totalW) / 2
+          : Math.max(vw - totalW - paddingPx, Math.min(paddingPx, x));
+      const cy =
+        totalH <= vh
+          ? (vh - totalH) / 2
+          : Math.max(vh - totalH - paddingPx, Math.min(paddingPx, y));
+
+      return { x: cx, y: cy };
+    }
+
+    function centerGrid() {
+      const { vw, vh }         = getViewport();
+      const { totalW, totalH } = getTotalSizePx();
+      offsetX = (vw - totalW) / 2;
+      offsetY = (vh - totalH) / 2;
+      applyTransform(false);
+    }
+
+    // ─── DRAG ─────────────────────────────────────────────────────────────────
+    let isDragging = false;
+    let startX = 0, startY = 0;
+    let startOffX = 0, startOffY = 0;
+    let velX = 0, velY = 0;
+    let lastX = 0, lastY = 0;
+    let lastTime = 0;
+    let rafId = null;
+
+    function getXY(e) {
+      const src = e.touches ? e.touches[0] : e;
+      return { x: src.clientX, y: src.clientY };
+    }
+
+    function onStart(e) {
+      if (e.target.closest("a, button, .actions__button")) return;
+      const { x, y } = getXY(e);
+      isDragging = true;
+      startX = x; startY = y;
+      startOffX = offsetX; startOffY = offsetY;
+      lastX = x; lastY = y;
+      lastTime = Date.now();
+      velX = 0; velY = 0;
+      bundleEl.style.cursor = "grabbing";
+      cancelAnimationFrame(rafId);
+    }
+
+    function onMove(e) {
+      if (!isDragging) return;
+      const { x, y } = getXY(e);
+      const now = Date.now();
+      const dt  = Math.max(1, now - lastTime);
+
+      velX = ((x - lastX) / dt) * 16;
+      velY = ((y - lastY) / dt) * 16;
+      lastX = x; lastY = y;
+      lastTime = now;
+
+      const rawX = startOffX + (x - startX);
+      const rawY = startOffY + (y - startY);
+      const { x: cx, y: cy } = clampOffset(rawX, rawY);
+
+      offsetX = cx + (rawX - cx) * 0.18;
+      offsetY = cy + (rawY - cy) * 0.18;
+      applyTransform(false);
+    }
+
+    function onEnd() {
+      if (!isDragging) return;
+      isDragging = false;
+      bundleEl.style.cursor = "grab";
+      runInertia();
+    }
+
+    function runInertia() {
+      const friction = 0.92;
+      function step() {
+        velX *= friction;
+        velY *= friction;
+        offsetX += velX;
+        offsetY += velY;
+
+        const { x: cx, y: cy } = clampOffset(offsetX, offsetY);
+        if (offsetX !== cx) { offsetX = cx + (offsetX - cx) * 0.85; velX *= 0.6; }
+        if (offsetY !== cy) { offsetY = cy + (offsetY - cy) * 0.85; velY *= 0.6; }
+
+        applyTransform(false);
+
+        if (Math.abs(velX) > 0.2 || Math.abs(velY) > 0.2) {
+          rafId = requestAnimationFrame(step);
+        } else {
+          const { x: fx, y: fy } = clampOffset(offsetX, offsetY);
+          if (fx !== offsetX || fy !== offsetY) {
+            offsetX = fx; offsetY = fy;
+            applyTransform(true);
+          }
+        }
+      }
+      rafId = requestAnimationFrame(step);
+    }
+
+    // ─── RESIZE ───────────────────────────────────────────────────────────────
+    let lastBreakpoint = isMobile();
+
+    window.addEventListener("resize", () => {
+      const nowMobile = isMobile();
+      if (nowMobile !== lastBreakpoint) {
+        lastBreakpoint = nowMobile;
+        updateBundleSize();
+        layoutItems();
+      }
+      centerGrid();
+    });
+
+    // ─── СОБЫТИЯ ─────────────────────────────────────────────────────────────
+    bundleEl.addEventListener("mousedown", onStart);
+    bundleEl.addEventListener("touchstart", onStart, { passive: true });
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("touchmove", onMove, { passive: true });
+    window.addEventListener("mouseup", onEnd);
+    window.addEventListener("touchend", onEnd);
+
+    // ─── СТАРТ ───────────────────────────────────────────────────────────────
+    updateBundleSize();
+    layoutItems();
+    centerGrid();
+  })();
+}
+
+//
+
+const cursor = document.querySelector(".main__cursor");
+
+let mouseX = 0;
+let mouseY = 0;
+
+let posX = 0;
+let posY = 0;
+
+document.addEventListener("mousemove", (e) => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+});
+
+function animate() {
+  posX += (mouseX - posX) * 0.15;
+  posY += (mouseY - posY) * 0.15;
+
+  cursor.style.left = posX + "px";
+  cursor.style.top = posY + "px";
+
+  requestAnimationFrame(animate);
+}
+
+animate();
+
 if (document.querySelector(".keyboard")) {
   (function () {
     const layouts = {
@@ -277,229 +594,6 @@ if (document.querySelector(".filters-form")) {
   });
 }
 
-// (function () {
-//   const layouts = {
-//     ru: {
-//       normal: [
-//         ["й", "ц", "у", "к", "е", "н", "г", "ш", "щ", "з", "х", "ъ"],
-//         ["ф", "ы", "в", "а", "п", "р", "о", "л", "д", "ж", "э"],
-//         ["SHIFT", "я", "ч", "с", "м", "и", "т", "ь", "б", "ю", ".", "BACK"],
-//         ["123", "LANG", " ", "ENTER"],
-//       ],
-//       shift: [
-//         ["Й", "Ц", "У", "К", "Е", "Н", "Г", "Ш", "Щ", "З", "Х", "Ъ"],
-//         ["Ф", "Ы", "В", "А", "П", "Р", "О", "Л", "Д", "Ж", "Э"],
-//         ["SHIFT", "Я", "Ч", "С", "М", "И", "Т", "Ь", "Б", "Ю", ".", "BACK"],
-//         ["123", "LANG", " ", "ENTER"],
-//       ],
-//       nums: [
-//         ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
-//         ["-", "/", ":", ";", "(", ")", ",", "!", "?", "@"],
-//         ["ABC", ".", ",", '"', "'", "_", "&", "%", "=", "BACK"],
-//         ["ABC", "LANG", " ", "ENTER"],
-//       ],
-//     },
-//     en: {
-//       normal: [
-//         ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
-//         ["a", "s", "d", "f", "g", "h", "j", "k", "l"],
-//         ["SHIFT", "z", "x", "c", "v", "b", "n", "m", ",", ".", "BACK"],
-//         ["123", "LANG", " ", "ENTER"],
-//       ],
-//       shift: [
-//         ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
-//         ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
-//         ["SHIFT", "Z", "X", "C", "V", "B", "N", "M", ",", ".", "BACK"],
-//         ["123", "LANG", " ", "ENTER"],
-//       ],
-//       nums: [
-//         ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
-//         ["-", "/", ":", ";", "(", ")", ",", "!", "?", "@"],
-//         ["ABC", ".", ",", '"', "'", "_", "&", "%", "=", "BACK"],
-//         ["ABC", "LANG", " ", "ENTER"],
-//       ],
-//     },
-//     kk: {
-//       normal: [
-//         ["й", "ц", "у", "к", "е", "н", "г", "ш", "щ", "з", "х", "ъ"],
-//         ["ф", "ы", "в", "а", "п", "р", "о", "л", "д", "ж", "э"],
-//         ["SHIFT", "я", "ч", "с", "м", "и", "т", "ь", "б", "ю", "ң", "BACK"],
-//         ["ә", "ғ", "қ", "ү", "ұ", "і", "ө", "һ"],
-//         ["123", "LANG", " ", "ENTER"],
-//       ],
-//       shift: [
-//         ["Й", "Ц", "У", "К", "Е", "Н", "Г", "Ш", "Щ", "З", "Х", "Ъ"],
-//         ["Ф", "Ы", "В", "А", "П", "Р", "О", "Л", "Д", "Ж", "Э"],
-//         ["SHIFT", "Я", "Ч", "С", "М", "И", "Т", "Ь", "Б", "Ю", "Ң", "BACK"],
-//         ["Ә", "Ғ", "Қ", "Ү", "Ұ", "І", "Ө", "Һ"],
-//         ["123", "LANG", " ", "ENTER"],
-//       ],
-//       nums: [
-//         ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
-//         ["-", "/", ":", ";", "(", ")", ",", "!", "?", "@"],
-//         ["ABC", ".", ",", '"', "'", "_", "&", "%", "=", "BACK"],
-//         ["ABC", "LANG", " ", "ENTER"],
-//       ],
-//     },
-//   };
-
-//   const langOrder = ["ru", "en", "kk"];
-//   const langNames = { ru: "RU", en: "EN", kk: "ҚАЗ" };
-
-//   let currentLang = "ru";
-//   let isShift = false;
-//   let isNums = false;
-
-//   const popup = document.getElementById("kb-popup");
-//   const rowsEl = document.getElementById("kb-rows");
-//   // Дай инпуту id="search-input"
-//   const input = document.getElementById("search-input");
-
-//   function getLayout() {
-//     if (isNums) return layouts[currentLang].nums;
-//     return isShift ? layouts[currentLang].shift : layouts[currentLang].normal;
-//   }
-
-//   function buildKeyboard() {
-//     rowsEl.innerHTML = "";
-//     getLayout().forEach((rowKeys) => {
-//       const row = document.createElement("div");
-//       row.className = "kb-row";
-//       rowKeys.forEach((k) => {
-//         const btn = document.createElement("button");
-//         btn.className = "kb-key";
-//         btn.type = "button";
-//         btn.dataset.key = k;
-
-//         if (k === "SHIFT") {
-//           btn.textContent = "⇧";
-//           btn.classList.add("special", "shift-key");
-//           if (isShift) btn.classList.add("active-shift");
-//         } else if (k === "BACK") {
-//           btn.textContent = "⌫";
-//           btn.classList.add("special", "backspace-key");
-//         } else if (k === "ENTER") {
-//           btn.textContent = "Enter ↵";
-//           btn.classList.add("special");
-//           btn.style.minWidth = "80px";
-//         } else if (k === "123") {
-//           btn.textContent = "123";
-//           btn.classList.add("special");
-//           if (isNums) btn.classList.add("active-shift");
-//         } else if (k === "ABC") {
-//           btn.textContent = "ABC";
-//           btn.classList.add("special");
-//         } else if (k === "LANG") {
-//           btn.textContent = "🌐 " + langNames[currentLang];
-//           btn.classList.add("special", "lang-key");
-//         } else if (k === " ") {
-//           btn.classList.add("space");
-//         }
-
-//         btn.addEventListener("mousedown", (e) => {
-//           e.preventDefault();
-//           handleKey(k, btn);
-//         });
-
-//         row.appendChild(btn);
-//       });
-//       rowsEl.appendChild(row);
-//     });
-//   }
-
-//   function handleKey(k, btn) {
-//     btn.classList.add("pressed");
-//     setTimeout(() => btn.classList.remove("pressed"), 150);
-
-//     if (k === "SHIFT") {
-//       isShift = !isShift;
-//       buildKeyboard();
-//       return;
-//     }
-//     if (k === "123") {
-//       isNums = true;
-//       buildKeyboard();
-//       return;
-//     }
-//     if (k === "ABC") {
-//       isNums = false;
-//       isShift = false;
-//       buildKeyboard();
-//       return;
-//     }
-//     if (k === "LANG") {
-//       currentLang =
-//         langOrder[(langOrder.indexOf(currentLang) + 1) % langOrder.length];
-//       isShift = false;
-//       isNums = false;
-//       document
-//         .querySelectorAll(".kb-lang-btn")
-//         .forEach((b) =>
-//           b.classList.toggle("active", b.dataset.lang === currentLang),
-//         );
-//       buildKeyboard();
-//       return;
-//     }
-//     if (k === "BACK") {
-//       const s = input.selectionStart,
-//         e = input.selectionEnd;
-//       if (s !== e) {
-//         input.value = input.value.slice(0, s) + input.value.slice(e);
-//         input.setSelectionRange(s, s);
-//       } else if (s > 0) {
-//         input.value = input.value.slice(0, s - 1) + input.value.slice(s);
-//         input.setSelectionRange(s - 1, s - 1);
-//       }
-//       input.dispatchEvent(new Event("input"));
-//       return;
-//     }
-//     if (k === "ENTER") {
-//       popup.classList.remove("active");
-//       return;
-//     }
-
-//     const s = input.selectionStart,
-//       e = input.selectionEnd;
-//     input.value = input.value.slice(0, s) + k + input.value.slice(e);
-//     input.setSelectionRange(s + k.length, s + k.length);
-//     input.dispatchEvent(new Event("input"));
-
-//     if (isShift && !isNums) {
-//       isShift = false;
-//       buildKeyboard();
-//     }
-//   }
-
-//   // Открыть/закрыть
-//   input.addEventListener("focus", () => popup.classList.add("active"));
-
-//   // Закрыть при клике вне клавиатуры и вне инпута
-//   document.addEventListener("mousedown", (e) => {
-//     if (!popup.contains(e.target) && e.target !== input) {
-//       popup.classList.remove("active");
-//     }
-//   });
-
-//   // Кнопки языка сверху
-//   document.querySelectorAll(".kb-lang-btn").forEach((btn) => {
-//     btn.addEventListener("click", () => {
-//       currentLang = btn.dataset.lang;
-//       isShift = false;
-//       isNums = false;
-//       document
-//         .querySelectorAll(".kb-lang-btn")
-//         .forEach((b) =>
-//           b.classList.toggle("active", b.dataset.lang === currentLang),
-//         );
-//       buildKeyboard();
-//     });
-//   });
-
-//   buildKeyboard();
-// })();
-
-//
-
 if (document.querySelector(".spheres-item__show")) {
   document.querySelectorAll(".spheres-item__show").forEach((button) => {
     button.addEventListener("click", () => {
@@ -508,264 +602,6 @@ if (document.querySelector(".spheres-item__show")) {
     });
   });
 }
-
-// document.addEventListener("DOMContentLoaded", function () {
-//   var x, i, j, l, ll, selElmnt, a, b, c;
-//   /* Look for any elements with the class "custom-select": */
-//   x = document.getElementsByClassName("custom-select");
-//   l = x.length;
-//   for (i = 0; i < l; i++) {
-//     selElmnt = x[i].getElementsByTagName("select")[0];
-//     ll = selElmnt.length;
-//     /* For each element, create a new DIV that will act as the selected item: */
-//     a = document.createElement("DIV");
-//     a.setAttribute("class", "select-selected");
-//     a.innerHTML = selElmnt.options[selElmnt.selectedIndex].innerHTML;
-//     x[i].appendChild(a);
-//     /* For each element, create a new DIV that will contain the option list: */
-//     b = document.createElement("DIV");
-//     b.setAttribute("class", "select-items select-hide");
-//     for (j = 1; j < ll; j++) {
-//       /* For each option in the original select element,
-//           create a new DIV that will act as an option item: */
-//       c = document.createElement("DIV");
-//       c.innerHTML = selElmnt.options[j].innerHTML;
-//       c.addEventListener("click", function (e) {
-//         /* When an item is clicked, update the original select box,
-//               and the selected item: */
-//         var y, i, k, s, h, sl, yl;
-//         s = this.parentNode.parentNode.getElementsByTagName("select")[0];
-//         sl = s.length;
-//         h = this.parentNode.previousSibling;
-//         for (i = 0; i < sl; i++) {
-//           if (s.options[i].innerHTML == this.innerHTML) {
-//             s.selectedIndex = i;
-//             h.innerHTML = this.innerHTML;
-//             y = this.parentNode.getElementsByClassName("same-as-selected");
-//             yl = y.length;
-//             for (k = 0; k < yl; k++) {
-//               y[k].removeAttribute("class");
-//             }
-//             this.setAttribute("class", "same-as-selected");
-//             break;
-//           }
-//         }
-//         h.click();
-//       });
-//       b.appendChild(c);
-//     }
-//     x[i].appendChild(b);
-//     a.addEventListener("click", function (e) {
-//       /* When the select box is clicked, close any other select boxes,
-//           and open/close the current select box: */
-//       e.stopPropagation();
-//       closeAllSelect(this);
-//       this.nextSibling.classList.toggle("select-hide");
-//       this.classList.toggle("select-arrow-active");
-//     });
-//   }
-
-//   function closeAllSelect(elmnt) {
-//     /* A function that will close all select boxes in the document,
-//       except the current select box: */
-//     var x,
-//       y,
-//       i,
-//       xl,
-//       yl,
-//       arrNo = [];
-//     x = document.getElementsByClassName("select-items");
-//     y = document.getElementsByClassName("select-selected");
-//     xl = x.length;
-//     yl = y.length;
-//     for (i = 0; i < yl; i++) {
-//       if (elmnt == y[i]) {
-//         arrNo.push(i);
-//       } else {
-//         y[i].classList.remove("select-arrow-active");
-//       }
-//     }
-//     for (i = 0; i < xl; i++) {
-//       if (arrNo.indexOf(i)) {
-//         x[i].classList.add("select-hide");
-//       }
-//     }
-//   }
-
-//   /* If the user clicks anywhere outside the select box,
-//   then close all select boxes: */
-//   document.addEventListener("click", closeAllSelect);
-// });
-
-// Чек боксы и их родители
-
-// document.querySelectorAll('.method-item__input').forEach(function (checkbox) {
-//     checkbox.addEventListener('click', function () {
-//         // Убираем checked у всех элементов
-//         document.querySelectorAll('.method-item__input').forEach(function (otherCheckbox) {
-//             otherCheckbox.checked = false;
-//             otherCheckbox.closest('.method-item').classList.remove('method-item--active');
-//         });
-
-//         // Ставим checked только на выбранный элемент
-//         this.checked = true;
-
-//         // Добавляем активный класс родителю выбранного элемента
-//         this.closest('.method-item').classList.add('method-item--active');
-//     });
-// });
-
-//
-
-// Получаем все элементы с классом tub
-// if ( document.querySelector('.tub') ) {
-//     const tabs = document.querySelectorAll('.tub');
-//     const tubElement = document.querySelectorAll('.tub-element');
-
-//     tabs.forEach(tab => {
-//         tab.addEventListener('click', function () {
-//             tabs.forEach(t => t.classList.remove('tub--active'));
-
-//             this.classList.add('tub--active');
-
-//             tubElement.forEach(tub => tub.classList.remove('tub-element--active'));
-
-//             const tubElementToActivate = document.querySelector(`.tub-element[id="${this.id}"]`);
-
-//             if (tubElementToActivate) {
-//                 tubElementToActivate.classList.add('tub-element--active');
-//             }
-//         });
-//     });
-// }
-//
-
-$(function () {
-  $(document).ready(function () {
-    var $popup = $(".popup");
-    var $popups = {
-      search: $(".popup--search"),
-      filters: $(".popup--filters"),
-    };
-
-    // Функция для показа попапа
-    function showPopup($popupToShow) {
-      $popupToShow.addClass("popup--active").fadeIn(250, function () {
-        $(this).animate({ opacity: 1 }, 250);
-      });
-      $("body").addClass("body--popup");
-    }
-
-    // Функция для скрытия попапа
-    function hidePopup($popupToHide) {
-      $popupToHide.removeClass("popup--active").fadeOut(250, function () {
-        $(this).animate({ opacity: 1 }, 250);
-      });
-      $("body").removeClass("body--popup");
-    }
-
-    // Обработчики кликов для показа попапов
-    $(".actions__button--search").click(function (event) {
-      event.stopPropagation();
-      event.preventDefault();
-      showPopup($popups.search);
-    });
-
-    // Обработчики кликов для показа попапов
-    $(".actions__button--tags").click(function (event) {
-      event.stopPropagation();
-      event.preventDefault();
-      showPopup($popups.filters);
-    });
-
-    // Обработчик кликов для скрытия попапов
-    $(".cls").click(function (event) {
-      event.stopPropagation();
-      event.preventDefault();
-      hidePopup($popup);
-    });
-
-    // Скрываем попап при клике вне его области
-    $(document).click(function (event) {
-      $.each($popups, function (key, $popupToCheck) {
-        if ($popupToCheck.hasClass("popup--active")) {
-          var $popupInner = $popupToCheck.find(".popup__inner");
-          if (
-            !$popupInner.is(event.target) &&
-            $popupInner.has(event.target).length === 0
-          ) {
-            hidePopup($popupToCheck);
-          }
-        }
-      });
-    });
-  });
-});
-
-// Делаем высоту слайдов одинаковой
-// function setMaxHeightForProjects() {
-//     setTimeout(() => {
-//         let heights = [];
-
-//         // Получаем высоту каждого элемента и добавляем в массив
-//         document.querySelectorAll('.projects-swiper__slide').forEach(function (slide) {
-//             heights.push(slide.getBoundingClientRect().height);
-//         });
-
-//         let maxHeight = Math.max(...heights);
-
-//         // Устанавливаем высоту каждого элемента в самую большую высоту
-//         document.querySelectorAll('.projects-swiper__slide').forEach(function (slide) {
-//             slide.style.minHeight = maxHeight + 'px';
-//         });
-//     }, 200)
-// }
-
-// $(function () {
-//     // Получаем нужный элемент
-//     if (document.querySelector('.projects')) {
-//         var element = document.querySelector('.projects');
-
-//         var newsVisible = function (target) {
-//             // let headerBottom = document.querySelectorAll('.header-bottom')[0]
-//             // var menuBtn = document.querySelectorAll('.menu-btn')[0]
-//             // var footerTop = document.querySelectorAll('.footer-top')[0]
-//             // Все позиции элемента
-//             var targetPosition = {
-//                     top: window.pageYOffset + target.getBoundingClientRect().top,
-//                     left: window.pageXOffset + target.getBoundingClientRect().left,
-//                     right: window.pageXOffset + target.getBoundingClientRect().right,
-//                     bottom: window.pageYOffset + target.getBoundingClientRect().bottom
-//                 },
-//                 // Получаем позиции окна
-//                 windowPosition = {
-//                     top: window.pageYOffset,
-//                     left: window.pageXOffset,
-//                     right: window.pageXOffset + document.documentElement.clientWidth,
-//                     bottom: window.pageYOffset + document.documentElement.clientHeight
-//                 };
-
-//             if (targetPosition.bottom > windowPosition.top && // Если позиция нижней части элемента больше позиции верхней чайти окна, то элемент виден сверху
-//                 targetPosition.top < windowPosition.bottom && // Если позиция верхней части элемента меньше позиции нижней чайти окна, то элемент виден снизу
-//                 targetPosition.right > windowPosition.left && // Если позиция правой стороны элемента больше позиции левой части окна, то элемент виден слева
-//                 targetPosition.left < windowPosition.right) { // Если позиция левой стороны элемента меньше позиции правой чайти окна, то элемент виден справа
-//                 // Если элемент полностью видно, то запускаем следующий код
-//                 setTimeout(() => {
-//                     setMaxHeightForProjects()
-//                 }, 1000)
-//             } else {};
-//         };
-
-//         // Запускаем функцию при прокрутке страницы
-//         window.addEventListener('scroll', function () {
-//             newsVisible(element);
-//         });
-
-//         // А также запустим функцию сразу. А то вдруг, элемент изначально видно
-//         newsVisible(element);
-//     }
-// })
-//
 
 new Swiper(".companies-swiper", {
   slidesPerView: 1.88,
@@ -806,7 +642,7 @@ new Swiper(".companies-swiper", {
   },
 });
 
-new Swiper(".presentation-swiper", {
+var presentationSwiper = new Swiper(".presentation-swiper", {
   slidesPerView: 1,
   loop: true,
   initialSlide: 1,
@@ -822,24 +658,154 @@ new Swiper(".presentation-swiper", {
     type: "bullets",
     clickable: true,
   },
-  // breakpoints: {
-  //   301: {
-  //     slidesPerView: 1.37,
-  //     loop: true,
-  //     initialSlide: 1,
-  //     centeredSlides: true,
-  //     spaceBetween: 30,
-  //     speed: 750,
-  //   },
-  //   1401: {
-  //     slidesPerView: 1.88,
-  //     loop: true,
-  //     initialSlide: 1,
-  //     centeredSlides: true,
-  //     spaceBetween: 30,
-  //     speed: 750,
-  //   },
-  // },
+});
+
+var videosSwiper = new Swiper(".videos-swiper", {
+  slidesPerView: 1,
+  loop: true,
+  initialSlide: 0,
+  centeredSlides: true,
+  spaceBetween: 30,
+  speed: 750,
+  effect: "fade",
+  fadeEffect: {
+    crossFade: true,
+  },
+  navigation: {
+    prevEl: ".videos-controls__arrow--left",
+    nextEl: ".videos-controls__arrow--right",
+  },
+  pagination: {
+    el: ".videos-controls__pagination",
+    type: "fraction",
+    formatFractionCurrent: (number) => number.toString().padStart(2, "0"),
+    formatFractionTotal: (number) => number.toString().padStart(2, "0"),
+  },
+  on: {
+    slideChange: function () {
+      // Останавливаем все видео при смене слайда
+      $(".videos-item__video").each(function () {
+        this.pause();
+      });
+    },
+  },
+});
+
+$(function () {
+  $(document).ready(function () {
+    var $popup = $(".popup");
+    var $popups = {
+      search: $(".popup--search"),
+      filters: $(".popup--filters"),
+      videos: $(".popup--videos"),
+      details: $(".popup--details"),
+      languages: $(".popup--languages"),
+      back: $(".popup--back"),
+    };
+
+    function showPopup($popupToShow) {
+      $popupToShow.addClass("popup--active").fadeIn(250, function () {
+        $(this).animate({ opacity: 1 }, 250);
+      });
+      $("body").addClass("body--popup");
+    }
+
+    function hidePopup($popupToHide) {
+      // Останавливаем все видео при закрытии попапа
+      $(".videos-item__video").each(function () {
+        this.pause();
+      });
+
+      $popupToHide.removeClass("popup--active").fadeOut(250, function () {
+        $(this).animate({ opacity: 1 }, 250);
+      });
+      $("body").removeClass("body--popup");
+    }
+
+    $(".actions__button--search").click(function (event) {
+      event.stopPropagation();
+      event.preventDefault();
+      showPopup($popups.search);
+    });
+
+    $(".actions__button--tags").click(function (event) {
+      event.stopPropagation();
+      event.preventDefault();
+      showPopup($popups.filters);
+    });
+
+    $(".usernav-list__item--home").click(function (event) {
+      event.stopPropagation();
+      event.preventDefault();
+      showPopup($popups.back);
+    });
+
+    $(".usernav-list__item--lang").click(function (event) {
+      event.stopPropagation();
+      event.preventDefault();
+      showPopup($popups.languages);
+    });
+
+
+    $(".bottom__link--details").click(function (event) {
+      event.stopPropagation();
+      event.preventDefault();
+      showPopup($popups.details);
+    });
+
+
+    // Клик на айтем основного слайдера — открываем попап и переходим к нужному слайду
+    $(".presentation-item").click(function (event) {
+      event.stopPropagation();
+      event.preventDefault();
+
+      // Определяем реальный индекс кликнутого слайда
+      var $slide = $(this).closest(".swiper-slide");
+      var realIndex = $slide.data("swiper-slide-index");
+
+      // Если data-атрибут не установлен — fallback через DOM индекс
+      if (realIndex === undefined) {
+        realIndex = $slide.index();
+      }
+
+      // Переходим к нужному слайду в попапе (без анимации для точности)
+      videosSwiper.slideToLoop(realIndex, 0, false);
+
+      showPopup($popups.videos);
+    });
+
+    // Клик на видео в попапе — play/pause
+    $(document).on("click", ".videos-item__video", function (event) {
+      event.stopPropagation();
+      var video = this;
+
+      if (video.paused) {
+        video.play();
+      } else {
+        video.pause();
+      }
+    });
+
+    $(".cls").click(function (event) {
+      event.stopPropagation();
+      event.preventDefault();
+      hidePopup($popup);
+    });
+
+    $(document).click(function (event) {
+      $.each($popups, function (key, $popupToCheck) {
+        if ($popupToCheck.hasClass("popup--active")) {
+          var $popupInner = $popupToCheck.find(".popup__inner");
+          if (
+            !$popupInner.is(event.target) &&
+            $popupInner.has(event.target).length === 0
+          ) {
+            hidePopup($popupToCheck);
+          }
+        }
+      });
+    });
+  });
 });
 
 // Aos - the right initialisation
