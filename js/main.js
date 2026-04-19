@@ -10,7 +10,7 @@ document.addEventListener("click", activateBody);
 
 //
 
-if (document.querySelector(".bundle")) {
+if (document.querySelector(".bundle:not(.bundle--sphere) .bundle__inner")) {
   const BUNDLE_CONFIG = {
     itemSize: 520,       // rem
     itemSizeMobile: 360, // rem
@@ -25,14 +25,19 @@ if (document.querySelector(".bundle")) {
     const { gap, padding, breakpoint } = BUNDLE_CONFIG;
 
     // ─── НАЙТИ ЭЛЕМЕНТЫ ──────────────────────────────────────────────────────
-    const bundleInner = document.querySelector(".bundle__inner");
+    const bundleEl = document.querySelector(".bundle:not(.bundle--sphere)");
+    const bundleInner = bundleEl
+      ? bundleEl.querySelector(".bundle__inner")
+      : null;
     if (!bundleInner)
       return console.warn("[BundleGrid] .bundle__inner не найден");
 
     const allItems = Array.from(
       bundleInner.querySelectorAll(":scope > .bundle__item"),
     );
-    const bottomEl = bundleInner.querySelector(".bundle__bottom");
+    const bottomEl = bundleEl
+      ? bundleEl.querySelector(":scope > .bundle__bottom")
+      : null;
 
     if (!allItems.length)
       return console.warn("[BundleGrid] .bundle__item не найдены");
@@ -79,8 +84,6 @@ if (document.querySelector(".bundle")) {
       willChange: "transform",
     });
 
-    const bundleEl =
-      bundleInner.closest(".bundle") || bundleInner.parentElement;
     Object.assign(bundleEl.style, {
       position: "relative",
       overflow: "hidden",
@@ -292,28 +295,30 @@ if (document.querySelector(".bundle")) {
 
 const cursor = document.querySelector(".main__cursor");
 
-let mouseX = 0;
-let mouseY = 0;
+if (cursor) {
+  let mouseX = 0;
+  let mouseY = 0;
 
-let posX = 0;
-let posY = 0;
+  let posX = 0;
+  let posY = 0;
 
-document.addEventListener("mousemove", (e) => {
-  mouseX = e.clientX;
-  mouseY = e.clientY;
-});
+  document.addEventListener("mousemove", (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  });
 
-function animate() {
-  posX += (mouseX - posX) * 0.15;
-  posY += (mouseY - posY) * 0.15;
+  function animateCursor() {
+    posX += (mouseX - posX) * 0.15;
+    posY += (mouseY - posY) * 0.15;
 
-  cursor.style.left = posX + "px";
-  cursor.style.top = posY + "px";
+    cursor.style.left = posX + "px";
+    cursor.style.top = posY + "px";
 
-  requestAnimationFrame(animate);
+    requestAnimationFrame(animateCursor);
+  }
+
+  animateCursor();
 }
-
-animate();
 
 if (document.querySelector(".keyboard")) {
   (function () {
@@ -587,96 +592,101 @@ if (document.querySelector(".spheres-item__show")) {
   });
 }
 
-new Swiper(".companies-swiper", {
-  slidesPerView: 1.88,
-  loop: true,
-  initialSlide: 1,
-  centeredSlides: true,
-  spaceBetween: 30,
-  speed: 750,
-  navigation: {
-    prevEl: ".companies-swiper__arrow--left",
-    nextEl: ".companies-swiper__arrow--right",
-  },
-  // pagination: {
-  //     el: '.recalls-swiper__pagination',
-  //     type: 'bullets',
-  // },
-  // autoplay: {
-  //     delay: 5000, // задержка между слайдами в миллисекундах
-  //     disableOnInteraction: false, // если true, автопрокрутка остановится при взаимодействии пользователя с swiper
-  // },
-  breakpoints: {
-    301: {
-      slidesPerView: 1.37,
-      loop: true,
-      initialSlide: 1,
-      centeredSlides: true,
-      spaceBetween: 30,
-      speed: 750,
-    },
-    1401: {
-      slidesPerView: 1.88,
-      loop: true,
-      initialSlide: 1,
-      centeredSlides: true,
-      spaceBetween: 30,
-      speed: 750,
-    },
-  },
-});
+let presentationSwiper = null;
+let videosSwiper = null;
 
-var presentationSwiper = new Swiper(".presentation-swiper", {
-  slidesPerView: 1,
-  loop: true,
-  initialSlide: 1,
-  centeredSlides: true,
-  spaceBetween: 30,
-  speed: 750,
-  navigation: {
-    prevEl: ".presentation-swiper__arrow--left",
-    nextEl: ".presentation-swiper__arrow--right",
-  },
-  pagination: {
-    el: ".presentation-swiper__pagination",
-    type: "bullets",
-    clickable: true,
-  },
-});
-
-var videosSwiper = new Swiper(".videos-swiper", {
-  slidesPerView: 1,
-  loop: true,
-  initialSlide: 0,
-  centeredSlides: true,
-  spaceBetween: 30,
-  speed: 750,
-  effect: "fade",
-  fadeEffect: {
-    crossFade: true,
-  },
-  navigation: {
-    prevEl: ".videos-controls__arrow--left",
-    nextEl: ".videos-controls__arrow--right",
-  },
-  pagination: {
-    el: ".videos-controls__pagination",
-    type: "fraction",
-    formatFractionCurrent: (number) => number.toString().padStart(2, "0"),
-    formatFractionTotal: (number) => number.toString().padStart(2, "0"),
-  },
-  on: {
-    slideChange: function () {
-      // Останавливаем все видео при смене слайда
-      $(".videos-item__video").each(function () {
-        this.pause();
-      });
+if (typeof Swiper !== "undefined" && document.querySelector(".companies-swiper")) {
+  new Swiper(".companies-swiper", {
+    slidesPerView: 1.88,
+    loop: true,
+    initialSlide: 1,
+    centeredSlides: true,
+    spaceBetween: 30,
+    speed: 750,
+    navigation: {
+      prevEl: ".companies-swiper__arrow--left",
+      nextEl: ".companies-swiper__arrow--right",
     },
-  },
-});
+    breakpoints: {
+      301: {
+        slidesPerView: 1.37,
+        loop: true,
+        initialSlide: 1,
+        centeredSlides: true,
+        spaceBetween: 30,
+        speed: 750,
+      },
+      1401: {
+        slidesPerView: 1.88,
+        loop: true,
+        initialSlide: 1,
+        centeredSlides: true,
+        spaceBetween: 30,
+        speed: 750,
+      },
+    },
+  });
+}
 
-$(function () {
-  $(document).ready(function () {
+if (
+  typeof Swiper !== "undefined" &&
+  document.querySelector(".presentation-swiper")
+) {
+  presentationSwiper = new Swiper(".presentation-swiper", {
+    slidesPerView: 1,
+    loop: true,
+    initialSlide: 1,
+    centeredSlides: true,
+    spaceBetween: 30,
+    speed: 750,
+    navigation: {
+      prevEl: ".presentation-swiper__arrow--left",
+      nextEl: ".presentation-swiper__arrow--right",
+    },
+    pagination: {
+      el: ".presentation-swiper__pagination",
+      type: "bullets",
+      clickable: true,
+    },
+  });
+}
+
+if (typeof Swiper !== "undefined" && document.querySelector(".videos-swiper")) {
+  videosSwiper = new Swiper(".videos-swiper", {
+    slidesPerView: 1,
+    loop: true,
+    initialSlide: 0,
+    centeredSlides: true,
+    spaceBetween: 30,
+    speed: 750,
+    effect: "fade",
+    fadeEffect: {
+      crossFade: true,
+    },
+    navigation: {
+      prevEl: ".videos-controls__arrow--left",
+      nextEl: ".videos-controls__arrow--right",
+    },
+    pagination: {
+      el: ".videos-controls__pagination",
+      type: "fraction",
+      formatFractionCurrent: (number) => number.toString().padStart(2, "0"),
+      formatFractionTotal: (number) => number.toString().padStart(2, "0"),
+    },
+    on: {
+      slideChange: function () {
+        if (window.jQuery) {
+          $(".videos-item__video").each(function () {
+            this.pause();
+          });
+        }
+      },
+    },
+  });
+}
+
+if (window.jQuery) {
+  $(function () {
     var $popup = $(".popup");
     var $popups = {
       search: $(".popup--search"),
@@ -757,8 +767,9 @@ $(function () {
         realIndex = $slide.index();
       }
 
-      // Переходим к нужному слайду в попапе (без анимации для точности)
-      videosSwiper.slideToLoop(realIndex, 0, false);
+      if (videosSwiper) {
+        videosSwiper.slideToLoop(realIndex, 0, false);
+      }
 
       showPopup($popups.videos);
     });
@@ -795,4 +806,1516 @@ $(function () {
       });
     });
   });
-});
+}
+
+// sphere bundle scene: start
+
+if (document.querySelector("[data-sphere-scene]")) {
+  (function () {
+    const THREE_LIB = window.THREE;
+    const sceneRoot = document.querySelector("[data-sphere-scene]");
+    const container = document.getElementById("sphere-app");
+    const overlay = sceneRoot
+      ? sceneRoot.querySelector(".sphere-scene__overlay")
+      : null;
+    const callout = document.getElementById("sphere-callout");
+    const calloutEyebrow = document.getElementById("sphere-callout-eyebrow");
+    const calloutTitle = document.getElementById("sphere-callout-title");
+    const calloutLines = document.getElementById("sphere-callout-lines");
+    const sourceBundleItems = sceneRoot
+      ? Array.from(sceneRoot.querySelectorAll(":scope > .bundle__inner > .bundle__item"))
+      : [];
+
+    if (
+      !THREE_LIB ||
+      !sceneRoot ||
+      !container ||
+      !overlay ||
+      !callout ||
+      !calloutLines ||
+      !sourceBundleItems.length
+    ) {
+      console.warn("[SphereBundle] Missing DOM nodes or THREE");
+      return;
+    }
+
+    const scene = new THREE_LIB.Scene();
+
+    const camera = new THREE_LIB.PerspectiveCamera(34, 1, 0.1, 2000);
+    camera.position.set(0, 10, 760);
+
+    const renderer = new THREE_LIB.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+      powerPreference: "high-performance",
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.outputColorSpace = THREE_LIB.SRGBColorSpace;
+    renderer.setClearColor(0x000000, 0);
+    container.appendChild(renderer.domElement);
+
+    const ambient = new THREE_LIB.AmbientLight(0xffffff, 1.55);
+    const keyLight = new THREE_LIB.DirectionalLight(0xffffff, 1.35);
+    const fillLight = new THREE_LIB.PointLight(0x6d5cff, 1.45, 1200);
+    const rimLight = new THREE_LIB.PointLight(0x57ff68, 1.9, 1200);
+    keyLight.position.set(2, 3, 4);
+    fillLight.position.set(-260, 160, 360);
+    rimLight.position.set(320, -70, 280);
+    scene.add(ambient, keyLight, fillLight, rimLight);
+
+    const world = new THREE_LIB.Group();
+    const tiltGroup = new THREE_LIB.Group();
+    const pitchGroup = new THREE_LIB.Group();
+    const cardGroup = new THREE_LIB.Group();
+    scene.add(world);
+    world.add(tiltGroup);
+    tiltGroup.add(pitchGroup);
+    pitchGroup.add(cardGroup);
+
+    const sphereCore = new THREE_LIB.Mesh(
+      new THREE_LIB.IcosahedronGeometry(148, 4),
+      new THREE_LIB.ShaderMaterial({
+        transparent: true,
+        depthWrite: false,
+        side: THREE_LIB.DoubleSide,
+        uniforms: {
+          uColorA: { value: new THREE_LIB.Color(0x6d5cff) },
+          uColorB: { value: new THREE_LIB.Color(0x57ff68) },
+          uOpacity: { value: 0.2 },
+        },
+        vertexShader: `
+          varying vec3 vWorldNormal;
+          varying vec3 vViewDir;
+          varying vec3 vWorldPosition;
+
+          void main() {
+            vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+            vWorldPosition = worldPosition.xyz;
+            vWorldNormal = normalize(mat3(modelMatrix) * normal);
+            vViewDir = normalize(cameraPosition - worldPosition.xyz);
+            gl_Position = projectionMatrix * viewMatrix * worldPosition;
+          }
+        `,
+        fragmentShader: `
+          uniform vec3 uColorA;
+          uniform vec3 uColorB;
+          uniform float uOpacity;
+
+          varying vec3 vWorldNormal;
+          varying vec3 vViewDir;
+          varying vec3 vWorldPosition;
+
+          void main() {
+            float fresnel = pow(1.0 - clamp(dot(normalize(vWorldNormal), normalize(vViewDir)), 0.0, 1.0), 2.1);
+            float band = 0.5 + 0.5 * sin(vWorldPosition.y * 0.055 + vWorldPosition.x * 0.04);
+            vec3 color = mix(uColorA, uColorB, band);
+            float alpha = fresnel * uOpacity;
+
+            if (alpha < 0.01) discard;
+
+            gl_FragColor = vec4(color, alpha);
+          }
+        `,
+      })
+    );
+    sphereCore.renderOrder = -20;
+    sphereCore.visible = false;
+    cardGroup.add(sphereCore);
+
+    const wireSphere = new THREE_LIB.LineSegments(
+      new THREE_LIB.WireframeGeometry(new THREE_LIB.IcosahedronGeometry(162, 2)),
+      new THREE_LIB.LineBasicMaterial({
+        color: 0x5dff78,
+        transparent: true,
+        opacity: 0.24,
+      })
+    );
+    wireSphere.renderOrder = -10;
+    wireSphere.visible = false;
+    cardGroup.add(wireSphere);
+
+    const sphereConfig = {
+      sphereRows: 5,
+      sphereCols: 8,
+      sphereRadius: 188,
+      pitchMin: -0.98,
+      pitchMax: 0.98,
+      flatPadding: 18,
+      zoomStep: 0.00115,
+      minZoom: 0,
+      maxZoom: 1,
+      orbitXMin: THREE_LIB.MathUtils.degToRad(-26),
+      orbitXMax: THREE_LIB.MathUtils.degToRad(20),
+    };
+
+    const pictureCalloutMap = {
+      "images/bundle-picture-1.png": {
+        title: "data engineering",
+        label: "технология",
+      },
+      "images/bundle-picture-2.png": {
+        title: "компьютерное зрение",
+        label: "технология",
+      },
+    };
+
+    function normalizeText(value) {
+      return (value || "").replace(/\s+/g, " ").trim();
+    }
+
+    function svgToDataUri(node) {
+      if (!node) return "";
+
+      const svg = node.cloneNode(true);
+      if (!svg.getAttribute("xmlns")) {
+        svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      }
+
+      return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+        new XMLSerializer().serializeToString(svg)
+      )}`;
+    }
+
+    function parseSourceCards(items) {
+      return items.map((itemNode, index) => {
+        const isClear = itemNode.classList.contains("bundle-item--clear");
+        const isPicture = itemNode.classList.contains("bundle-item--picture");
+        const isActions = itemNode.classList.contains("bundle-item--actions");
+        const imageEl = itemNode.querySelector("img");
+        const image = imageEl ? imageEl.getAttribute("src") || "" : "";
+        const type = isClear
+          ? "clear"
+          : isPicture
+            ? "picture"
+            : isActions
+              ? "actions"
+              : "image";
+        const titleNode = itemNode.querySelector(".bundle-item__title span");
+        const title = normalizeText(titleNode ? titleNode.textContent : "");
+        const pictureMeta = pictureCalloutMap[image] || null;
+        const calloutTitle =
+          type === "picture"
+            ? (pictureMeta && pictureMeta.title) || "визуальный модуль"
+            : type === "actions"
+              ? "поиск и фильтры"
+              : title;
+        const calloutLabel =
+          type === "picture"
+            ? (pictureMeta && pictureMeta.label) || "технология"
+            : type === "actions"
+              ? "инструменты"
+              : "направление";
+
+        return {
+          key: `bundle-card-${index}`,
+          index,
+          type,
+          title,
+          image,
+          calloutTitle,
+          calloutLabel,
+          interactive: !isClear,
+          actionIcons:
+            type === "actions"
+              ? {
+                  filters: svgToDataUri(
+                    itemNode.querySelector(".actions__button--tags svg")
+                  ),
+                  search: svgToDataUri(
+                    itemNode.querySelector(".actions__button--search svg")
+                  ),
+                }
+              : null,
+        };
+      });
+    }
+
+    const cardItems = parseSourceCards(sourceBundleItems);
+    const actionsCardIndex = cardItems.findIndex((item) => item.type === "actions");
+
+    if (actionsCardIndex !== -1) {
+      const [actionsCard] = cardItems.splice(actionsCardIndex, 1);
+      cardItems.splice(Math.min(17, cardItems.length), 0, actionsCard);
+    }
+
+    const stackSlots = new Set([5, 7, 16, 18, 27, 29, 36, 38]);
+    const textureCache = new Map();
+    const tileMeshes = [];
+
+    const raycaster = new THREE_LIB.Raycaster();
+    const pointer = new THREE_LIB.Vector2(2, 2);
+
+    const tempBasis = new THREE_LIB.Matrix4();
+    const tempWorldPosition = new THREE_LIB.Vector3();
+    const tempWorldNormal = new THREE_LIB.Vector3();
+    const tempToCamera = new THREE_LIB.Vector3();
+    const tempProjected = new THREE_LIB.Vector3();
+    const tempVectorA = new THREE_LIB.Vector3();
+    const tempVectorB = new THREE_LIB.Vector3();
+    const tempQuaternion = new THREE_LIB.Quaternion();
+    const tempWorldQuaternion = new THREE_LIB.Quaternion();
+    const tempAxis = new THREE_LIB.Vector3(0, 0, 1);
+
+    const layoutState = {
+      baseCardSize: 94,
+      flatColumns: 5,
+      flatCardSize: 90,
+      flatGap: 12,
+      flatRows: 8,
+      flatWidth: 0,
+      flatHeight: 0,
+    };
+
+    const viewState = {
+      zoom: 0.12,
+      zoomTarget: 0.12,
+      flatten: 0,
+    };
+
+    const interaction = {
+      hovered: null,
+      selected: null,
+      dragging: false,
+      dragMode: "sphere",
+      downX: 0,
+      downY: 0,
+      lastX: 0,
+      lastY: 0,
+      lastMoveTime: 0,
+      moved: false,
+      startPanX: 0,
+      startPanY: 0,
+    };
+
+    const flatState = {
+      x: 0,
+      y: 0,
+      targetX: 0,
+      targetY: 0,
+      velocityX: 0,
+      velocityY: 0,
+    };
+
+    const orbitState = {
+      targetX: THREE_LIB.MathUtils.degToRad(12),
+      targetY: THREE_LIB.MathUtils.degToRad(-34),
+      baseTilt: THREE_LIB.MathUtils.degToRad(17),
+    };
+
+    const calloutState = {
+      x: 0,
+      y: 0,
+      opacity: 0,
+    };
+
+    const calloutPath = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "path"
+    );
+    calloutPath.setAttribute("fill", "none");
+    calloutPath.setAttribute("stroke", "#59ff68");
+    calloutPath.setAttribute("stroke-width", "1.5");
+    calloutPath.setAttribute("stroke-linecap", "round");
+    calloutPath.setAttribute("stroke-linejoin", "round");
+    calloutPath.setAttribute("opacity", "0");
+    calloutLines.appendChild(calloutPath);
+
+    const calloutDot = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "circle"
+    );
+    calloutDot.setAttribute("r", "4.5");
+    calloutDot.setAttribute("fill", "#59ff68");
+    calloutDot.setAttribute("opacity", "0");
+    calloutLines.appendChild(calloutDot);
+
+    function createAmbientCallout(index) {
+      const element = document.createElement("div");
+      const eyebrow = document.createElement("span");
+      const title = document.createElement("span");
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      const markerFrame = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "rect"
+      );
+      const markerCore = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "rect"
+      );
+
+      element.className = "sphere-scene__callout sphere-scene__callout--ambient";
+      eyebrow.className = "sphere-scene__callout-eyebrow";
+      title.className = "sphere-scene__callout-title";
+      element.style.opacity = "0";
+      eyebrow.textContent = "";
+      title.textContent = "";
+      element.append(eyebrow, title);
+      overlay.insertBefore(element, callout);
+
+      path.setAttribute("fill", "none");
+      path.setAttribute("stroke", "#59ff68");
+      path.setAttribute("stroke-width", "1.2");
+      path.setAttribute("stroke-linecap", "round");
+      path.setAttribute("stroke-linejoin", "round");
+      path.setAttribute("opacity", "0");
+      calloutLines.appendChild(path);
+
+      markerFrame.setAttribute("width", "14");
+      markerFrame.setAttribute("height", "14");
+      markerFrame.setAttribute("fill", "none");
+      markerFrame.setAttribute("stroke", "#59ff68");
+      markerFrame.setAttribute("stroke-width", "1.2");
+      markerFrame.setAttribute("opacity", "0");
+      calloutLines.appendChild(markerFrame);
+
+      markerCore.setAttribute("width", "8");
+      markerCore.setAttribute("height", "8");
+      markerCore.setAttribute("fill", "#59ff68");
+      markerCore.setAttribute("opacity", "0");
+      calloutLines.appendChild(markerCore);
+
+      return {
+        element,
+        eyebrow,
+        title,
+        path,
+        markerFrame,
+        markerCore,
+        index,
+        x: 0,
+        y: 0,
+        opacity: 0,
+        linesKey: "",
+      };
+    }
+
+    const ambientCallouts = Array.from({ length: 4 }, (_, index) =>
+      createAmbientCallout(index)
+    );
+    const ambientHotspots = [
+      {
+        title: "компьютерное зрение",
+        label: "технология",
+        lines: ["компьютерное", "зрение"],
+        pitch: 0.52,
+        yaw: -0.78,
+        side: 1,
+        phase: 0.2,
+      },
+      {
+        title: "data engineering",
+        label: "технология",
+        lines: ["data", "engineering"],
+        pitch: -0.44,
+        yaw: 0.84,
+        side: -1,
+        phase: 1.3,
+      },
+      {
+        title: "разработка ПО",
+        label: "направление",
+        lines: ["разработка", "ПО"],
+        pitch: 0.14,
+        yaw: 2.18,
+        side: -1,
+        phase: 2.4,
+      },
+      {
+        title: "gamedev",
+        label: "направление",
+        lines: ["gamedev"],
+        pitch: -0.12,
+        yaw: -2.04,
+        side: 1,
+        phase: 3.5,
+      },
+    ];
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function smoothstep(edge0, edge1, value) {
+      const t = clamp((value - edge0) / (edge1 - edge0), 0, 1);
+      return t * t * (3 - 2 * t);
+    }
+
+    function getViewportWidth() {
+      return window.innerWidth || document.documentElement.clientWidth || container.clientWidth;
+    }
+
+    function getSceneScale() {
+      return getViewportWidth() <= 1440 ? 0.75 : 1;
+    }
+
+    function setAmbientCalloutLines(state, lines) {
+      const nextKey = lines.join("|");
+
+      if (state.linesKey === nextKey) return;
+
+      state.title.innerHTML = "";
+      lines.forEach((line) => {
+        const lineEl = document.createElement("span");
+        lineEl.className = "sphere-scene__callout-line";
+        lineEl.textContent = line;
+        state.title.appendChild(lineEl);
+      });
+      state.linesKey = nextKey;
+    }
+
+    function loadImage(src) {
+      return new Promise((resolve) => {
+        if (!src) {
+          resolve(null);
+          return;
+        }
+
+        const image = new Image();
+        image.decoding = "async";
+        image.onload = () => resolve(image);
+        image.onerror = () => resolve(null);
+        image.src = src;
+      });
+    }
+
+    async function preloadCardImages(items) {
+      const uniquePaths = Array.from(
+        new Set(
+          items
+            .flatMap((item) => [
+              item.image,
+              item.actionIcons ? item.actionIcons.filters : null,
+              item.actionIcons ? item.actionIcons.search : null,
+            ])
+            .filter(Boolean)
+        )
+      );
+      const images = await Promise.all(uniquePaths.map(loadImage));
+      const imageMap = new Map();
+
+      uniquePaths.forEach((path, index) => {
+        imageMap.set(path, images[index]);
+      });
+
+      return imageMap;
+    }
+
+    function drawRoundedRect(ctx, x, y, width, height, radius) {
+      const safeRadius = Math.min(radius, width * 0.5, height * 0.5);
+      ctx.beginPath();
+      ctx.moveTo(x + safeRadius, y);
+      ctx.arcTo(x + width, y, x + width, y + height, safeRadius);
+      ctx.arcTo(x + width, y + height, x, y + height, safeRadius);
+      ctx.arcTo(x, y + height, x, y, safeRadius);
+      ctx.arcTo(x, y, x + width, y, safeRadius);
+      ctx.closePath();
+    }
+
+    function drawCoverImage(ctx, image, x, y, width, height) {
+      if (!image) return;
+
+      const scale = Math.max(width / image.width, height / image.height);
+      const drawWidth = image.width * scale;
+      const drawHeight = image.height * scale;
+      const drawX = x + (width - drawWidth) * 0.5;
+      const drawY = y + (height - drawHeight) * 0.5;
+
+      ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+    }
+
+    function drawContainImage(ctx, image, x, y, width, height) {
+      if (!image) return;
+
+      const scale = Math.min(width / image.width, height / image.height);
+      const drawWidth = image.width * scale;
+      const drawHeight = image.height * scale;
+      const drawX = x + (width - drawWidth) * 0.5;
+      const drawY = y + (height - drawHeight) * 0.5;
+
+      ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+    }
+
+    function wrapText(ctx, text, maxWidth) {
+      const words = text.split(" ");
+      const lines = [];
+      let current = "";
+
+      words.forEach((word) => {
+        const next = current ? current + " " + word : word;
+        if (ctx.measureText(next).width <= maxWidth || !current) {
+          current = next;
+        } else {
+          lines.push(current);
+          current = word;
+        }
+      });
+
+      if (current) {
+        lines.push(current);
+      }
+
+      return lines.slice(0, 2);
+    }
+
+    function drawDecorSquares(ctx, color, x, y, width, height, size) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x - size * 0.5, y - size * 0.5, size, size);
+      ctx.fillRect(x + width - size * 0.5, y - size * 0.5, size, size);
+      ctx.fillRect(x - size * 0.5, y + height - size * 0.5, size, size);
+      ctx.fillRect(
+        x + width - size * 0.5,
+        y + height - size * 0.5,
+        size,
+        size
+      );
+    }
+
+    function drawFallbackActionIcon(ctx, type, x, y, size) {
+      ctx.save();
+      ctx.strokeStyle = "#00ff5d";
+      ctx.fillStyle = "#00ff5d";
+      ctx.lineWidth = 20;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+
+      if (type === "filters") {
+        ctx.beginPath();
+        ctx.moveTo(x + size * 0.22, y + size * 0.3);
+        ctx.lineTo(x + size * 0.78, y + size * 0.3);
+        ctx.moveTo(x + size * 0.22, y + size * 0.5);
+        ctx.lineTo(x + size * 0.78, y + size * 0.5);
+        ctx.moveTo(x + size * 0.22, y + size * 0.7);
+        ctx.lineTo(x + size * 0.78, y + size * 0.7);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(x + size * 0.42, y + size * 0.3, size * 0.08, 0, Math.PI * 2);
+        ctx.arc(x + size * 0.6, y + size * 0.5, size * 0.08, 0, Math.PI * 2);
+        ctx.arc(x + size * 0.34, y + size * 0.7, size * 0.08, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.beginPath();
+        ctx.arc(x + size * 0.46, y + size * 0.46, size * 0.22, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(x + size * 0.62, y + size * 0.62);
+        ctx.lineTo(x + size * 0.8, y + size * 0.8);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+
+    function createCardTexture(item, imageMap) {
+      if (textureCache.has(item.key)) {
+        return textureCache.get(item.key);
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = 1024;
+      canvas.height = 1024;
+      const ctx = canvas.getContext("2d");
+      const image = imageMap.get(item.image) || null;
+      ctx.clearRect(0, 0, 1024, 1024);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+
+      if (item.type === "clear") {
+        const clearGradient = ctx.createLinearGradient(0, 0, 1024, 1024);
+        clearGradient.addColorStop(0, "rgba(255,255,255,0.12)");
+        clearGradient.addColorStop(1, "rgba(255,255,255,0.08)");
+        ctx.fillStyle = clearGradient;
+        ctx.fillRect(0, 0, 1024, 1024);
+      }
+
+      if (item.type === "image") {
+        ctx.fillStyle = "rgba(255,255,255,0.20)";
+        ctx.fillRect(0, 0, 1024, 1024);
+        drawCoverImage(ctx, image, 49, 49, 926, 926);
+
+        const imageShade = ctx.createLinearGradient(0, 64, 0, 980);
+        imageShade.addColorStop(0, "rgba(34, 24, 55, 0)");
+        imageShade.addColorStop(0.62, "rgba(19, 13, 29, 0.02)");
+        imageShade.addColorStop(1, "rgba(8, 8, 16, 0.26)");
+        ctx.fillStyle = imageShade;
+        ctx.fillRect(49, 49, 926, 926);
+
+        const titleWidth = 760;
+        const titleHeight = 112;
+        const titleX = (1024 - titleWidth) * 0.5;
+        const titleY = 760;
+        ctx.fillStyle = "rgba(255,255,255,0.08)";
+        ctx.fillRect(titleX, titleY, titleWidth, titleHeight);
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 4;
+        ctx.strokeRect(titleX, titleY, titleWidth, titleHeight);
+        drawDecorSquares(ctx, "#ffffff", titleX, titleY, titleWidth, titleHeight, 14);
+
+        ctx.font = '600 64px "Cascadia Code", monospace';
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        const lines = wrapText(ctx, item.title, titleWidth - 120);
+        const lineHeight = 54;
+        const firstLineY =
+          titleY + titleHeight * 0.5 - ((lines.length - 1) * lineHeight) * 0.5;
+
+        lines.forEach((line, lineIndex) => {
+          ctx.fillText(line, 512, firstLineY + lineIndex * lineHeight);
+        });
+      }
+
+      if (item.type === "picture") {
+        const frameSize = 744;
+        const frameX = (1024 - frameSize) * 0.5;
+        const frameY = (1024 - frameSize) * 0.5;
+        ctx.fillStyle = "#280146";
+        ctx.fillRect(frameX, frameY, frameSize, frameSize);
+        drawContainImage(ctx, image, frameX + 46, frameY + 46, frameSize - 92, frameSize - 92);
+        ctx.strokeStyle = "#00ff5d";
+        ctx.lineWidth = 4;
+        ctx.strokeRect(frameX, frameY, frameSize, frameSize);
+        drawDecorSquares(ctx, "#00ff5d", frameX, frameY, frameSize, frameSize, 14);
+      }
+
+      if (item.type === "actions") {
+        const filtersIcon = imageMap.get(
+          item.actionIcons ? item.actionIcons.filters : null
+        ) || null;
+        const searchIcon = imageMap.get(
+          item.actionIcons ? item.actionIcons.search : null
+        ) || null;
+        const buttonSize = 315;
+        const gap = 70;
+        const startX = (1024 - (buttonSize * 2 + gap)) * 0.5;
+        const buttonY = 548;
+
+        ctx.fillStyle = "rgba(255,255,255,0.12)";
+        ctx.fillRect(0, 0, 1024, 1024);
+
+        [
+          { x: startX, icon: filtersIcon, type: "filters" },
+          { x: startX + buttonSize + gap, icon: searchIcon, type: "search" },
+        ].forEach((button) => {
+          ctx.strokeStyle = "#00ff5d";
+          ctx.lineWidth = 4;
+          ctx.strokeRect(button.x, buttonY, buttonSize, buttonSize);
+
+          if (button.icon) {
+            drawContainImage(
+              ctx,
+              button.icon,
+              button.x + 56,
+              buttonY + 56,
+              buttonSize - 112,
+              buttonSize - 112
+            );
+          } else {
+            drawFallbackActionIcon(
+              ctx,
+              button.type,
+              button.x + 48,
+              buttonY + 48,
+              buttonSize - 96
+            );
+          }
+        });
+      }
+
+      const grainGradient = ctx.createLinearGradient(0, 0, 1024, 1024);
+      grainGradient.addColorStop(0, "rgba(255,255,255,0.04)");
+      grainGradient.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = grainGradient;
+      ctx.fillRect(0, 0, 1024, 1024);
+
+      const texture = new THREE_LIB.CanvasTexture(canvas);
+      texture.colorSpace = THREE_LIB.SRGBColorSpace;
+      texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      textureCache.set(item.key, texture);
+      return texture;
+    }
+
+    function getSphericalNormal(pitch, yaw) {
+      return new THREE_LIB.Vector3(
+        Math.cos(pitch) * Math.sin(yaw),
+        Math.sin(pitch),
+        Math.cos(pitch) * Math.cos(yaw)
+      ).normalize();
+    }
+
+    function getBasisQuaternion(normal, yaw) {
+      const east = new THREE_LIB.Vector3(Math.cos(yaw), 0, -Math.sin(yaw)).normalize();
+      const north = new THREE_LIB.Vector3().crossVectors(normal, east).normalize();
+      tempBasis.makeBasis(east, north, normal);
+      return tempQuaternion.setFromRotationMatrix(tempBasis).clone();
+    }
+
+    function updateFlatLayout() {
+      const viewportWidth = getViewportWidth();
+
+      layoutState.flatColumns = viewportWidth < 900 ? 3 : 5;
+      layoutState.flatCardSize =
+        viewportWidth < 900 ? 74 : viewportWidth < 1440 ? 82 : 90;
+      layoutState.flatGap =
+        viewportWidth < 900 ? 8 : viewportWidth < 1440 ? 10 : 12;
+      layoutState.flatRows = Math.ceil(cardItems.length / layoutState.flatColumns);
+      layoutState.flatWidth =
+        layoutState.flatColumns * layoutState.flatCardSize +
+        (layoutState.flatColumns - 1) * layoutState.flatGap;
+      layoutState.flatHeight =
+        layoutState.flatRows * layoutState.flatCardSize +
+        (layoutState.flatRows - 1) * layoutState.flatGap;
+
+      tileMeshes.forEach((tile, index) => {
+        const col = index % layoutState.flatColumns;
+        const row = Math.floor(index / layoutState.flatColumns);
+        const x =
+          col * (layoutState.flatCardSize + layoutState.flatGap) -
+          layoutState.flatWidth * 0.5 +
+          layoutState.flatCardSize * 0.5;
+        const y =
+          layoutState.flatHeight * 0.5 -
+          row * (layoutState.flatCardSize + layoutState.flatGap) -
+          layoutState.flatCardSize * 0.5;
+
+        tile.userData.flatPosition.set(x, y, 0);
+        tile.userData.flatFitScale =
+          layoutState.flatCardSize / layoutState.baseCardSize;
+      });
+    }
+
+    function createTiles(imageMap) {
+      const planeGeometry = new THREE_LIB.PlaneGeometry(
+        layoutState.baseCardSize,
+        layoutState.baseCardSize
+      );
+
+      const pitchStep =
+        (sphereConfig.pitchMax - sphereConfig.pitchMin) /
+        (sphereConfig.sphereRows - 1);
+      const yawStep = (Math.PI * 2) / sphereConfig.sphereCols;
+
+      cardItems.forEach((item, index) => {
+        const row = Math.floor(index / sphereConfig.sphereCols);
+        const col = index % sphereConfig.sphereCols;
+        const yawOffset = row % 2 === 0 ? 0 : yawStep * 0.5;
+        const pitch = sphereConfig.pitchMin + row * pitchStep;
+        const yaw = col * yawStep + yawOffset;
+        const normal = getSphericalNormal(pitch, yaw);
+        const sphereDistance =
+          sphereConfig.sphereRadius +
+          (item.type === "picture" ? 10 : 0) +
+          (item.type === "clear" ? -10 : 4);
+        const spherePosition = normal.clone().multiplyScalar(sphereDistance);
+        const sphereQuaternion = getBasisQuaternion(normal, yaw);
+        const spin = Math.sin(index * 1.37) * (item.type === "picture" ? 0.2 : 0.11);
+        sphereQuaternion.multiply(
+          new THREE_LIB.Quaternion().setFromAxisAngle(tempAxis, spin)
+        );
+
+        const material = new THREE_LIB.MeshBasicMaterial({
+          map: createCardTexture(item, imageMap),
+          transparent: true,
+          opacity: 1,
+          side: THREE_LIB.DoubleSide,
+          depthWrite: false,
+        });
+
+        const tile = new THREE_LIB.Mesh(planeGeometry, material);
+        tile.position.copy(spherePosition);
+        tile.quaternion.copy(sphereQuaternion);
+        tile.renderOrder = 1;
+
+        tile.userData = {
+          ...item,
+          spherePosition,
+          sphereQuaternion,
+          flatPosition: new THREE_LIB.Vector3(),
+          flatQuaternion: new THREE_LIB.Quaternion(),
+          normal,
+          hover: 0,
+          hoverTarget: 0,
+          selected: 0,
+          selectedTarget: 0,
+          sphereScale:
+            item.type === "picture"
+              ? 0.76
+              : item.type === "clear"
+                ? 0.78
+                : 0.82,
+          flatScale:
+            item.type === "clear"
+              ? 0.92
+              : 0.97,
+          flatFitScale: 1,
+          floatSeed: index * 0.37,
+          lastFacing: 1,
+        };
+
+        const anchor = new THREE_LIB.Object3D();
+        anchor.position.set(0, 0, 8);
+        tile.add(anchor);
+        tile.userData.anchor = anchor;
+
+        if (stackSlots.has(index) && item.type === "image") {
+          const stack = new THREE_LIB.Mesh(
+            planeGeometry,
+            new THREE_LIB.MeshBasicMaterial({
+              map: material.map,
+              transparent: true,
+              opacity: 0.28,
+              side: THREE_LIB.DoubleSide,
+              depthWrite: false,
+            })
+          );
+          stack.position.set(8, -8, -12);
+          stack.scale.setScalar(0.94);
+          tile.add(stack);
+          tile.userData.stackMesh = stack;
+        }
+
+        cardGroup.add(tile);
+        tileMeshes.push(tile);
+      });
+
+      updateFlatLayout();
+    }
+
+    function getViewSizeAtDepth(depth) {
+      const distance = Math.abs(camera.position.z - depth);
+      const height =
+        2 * Math.tan(THREE_LIB.MathUtils.degToRad(camera.fov * 0.5)) * distance;
+      return {
+        width: height * camera.aspect,
+        height,
+      };
+    }
+
+    function clampPan(rawX, rawY) {
+      const viewSize = getViewSizeAtDepth(0);
+      const sceneScale = getSceneScale();
+      const padding = sphereConfig.flatPadding * sceneScale;
+      const effectiveFlatWidth = layoutState.flatWidth * sceneScale;
+      const effectiveFlatHeight = layoutState.flatHeight * sceneScale;
+      const maxX = Math.max(
+        0,
+        (effectiveFlatWidth - viewSize.width) * 0.5 + padding
+      );
+      const maxY = Math.max(
+        0,
+        (effectiveFlatHeight - viewSize.height) * 0.5 + padding
+      );
+
+      return {
+        x: clamp(rawX, -maxX, maxX),
+        y: clamp(rawY, -maxY, maxY),
+      };
+    }
+
+    function syncPanBounds() {
+      const clamped = clampPan(flatState.targetX, flatState.targetY);
+      flatState.targetX = clamped.x;
+      flatState.targetY = clamped.y;
+      flatState.x = clamp(flatState.x, -Math.abs(clamped.x), Math.abs(clamped.x));
+      flatState.y = clamp(flatState.y, -Math.abs(clamped.y), Math.abs(clamped.y));
+    }
+
+    function setPointer(event) {
+      const rect = container.getBoundingClientRect();
+      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    }
+
+    function pickTileHit() {
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(tileMeshes, false);
+
+      for (const hit of hits) {
+        const target = hit.object;
+        if (
+          target.userData.interactive !== false &&
+          target.userData.lastFacing > (viewState.flatten > 0.55 ? -0.18 : 0.04)
+        ) {
+          return {
+            tile: target,
+            hit,
+          };
+        }
+      }
+
+      return null;
+    }
+
+    function triggerTileAction(hitData) {
+      const tile = hitData ? hitData.tile : null;
+      const hit = hitData ? hitData.hit : null;
+
+      if (!tile || tile.userData.type !== "actions" || !hit || !hit.uv) {
+        return false;
+      }
+
+      const textureX = hit.uv.x * 1024;
+      const textureY = (1 - hit.uv.y) * 1024;
+      const buttonY = 548;
+      const buttonSize = 315;
+      const gap = 70;
+      const startX = (1024 - (buttonSize * 2 + gap)) * 0.5;
+      const searchTrigger = sceneRoot.querySelector(
+        ".sphere-scene__actions .actions__button--search"
+      );
+      const filtersTrigger = sceneRoot.querySelector(
+        ".sphere-scene__actions .actions__button--tags"
+      );
+
+      if (
+        textureY >= buttonY &&
+        textureY <= buttonY + buttonSize &&
+        textureX >= startX &&
+        textureX <= startX + buttonSize
+      ) {
+        if (filtersTrigger) {
+          filtersTrigger.click();
+        }
+        return true;
+      }
+
+      if (
+        textureY >= buttonY &&
+        textureY <= buttonY + buttonSize &&
+        textureX >= startX + buttonSize + gap &&
+        textureX <= startX + buttonSize * 2 + gap
+      ) {
+        if (searchTrigger) {
+          searchTrigger.click();
+        }
+        return true;
+      }
+
+      return false;
+    }
+
+    function updateHoveredTile(nextHovered) {
+      if (interaction.hovered === nextHovered) return;
+
+      if (interaction.hovered) {
+        interaction.hovered.userData.hoverTarget = 0;
+      }
+
+      interaction.hovered = nextHovered;
+
+      if (interaction.hovered) {
+        interaction.hovered.userData.hoverTarget = 1;
+      }
+    }
+
+    function setSelectedTile(nextSelected) {
+      if (interaction.selected === nextSelected) {
+        if (interaction.selected) {
+          interaction.selected.userData.selectedTarget = 0;
+        }
+        interaction.selected = null;
+        return;
+      }
+
+      if (interaction.selected) {
+        interaction.selected.userData.selectedTarget = 0;
+      }
+
+      interaction.selected = nextSelected;
+
+      if (interaction.selected) {
+        interaction.selected.userData.selectedTarget = 1;
+      }
+    }
+
+    function focusFlatTile(tile) {
+      if (!tile) return;
+      const clamped = clampPan(
+        -tile.userData.flatPosition.x,
+        -tile.userData.flatPosition.y
+      );
+      flatState.targetX = clamped.x;
+      flatState.targetY = clamped.y;
+    }
+
+    function currentDragMode() {
+      return viewState.flatten > 0.58 ? "flat" : "sphere";
+    }
+
+    function onPointerDown(event) {
+      interaction.dragging = true;
+      interaction.dragMode = currentDragMode();
+      interaction.moved = false;
+      interaction.downX = event.clientX;
+      interaction.downY = event.clientY;
+      interaction.lastX = event.clientX;
+      interaction.lastY = event.clientY;
+      interaction.lastMoveTime = performance.now();
+      interaction.startPanX = flatState.targetX;
+      interaction.startPanY = flatState.targetY;
+      flatState.velocityX = 0;
+      flatState.velocityY = 0;
+      container.classList.add("sphere-scene__viewport--dragging");
+      setPointer(event);
+
+      if (container.setPointerCapture) {
+        container.setPointerCapture(event.pointerId);
+      }
+    }
+
+    function onPointerMove(event) {
+      setPointer(event);
+
+      if (!interaction.dragging) {
+        const hoveredHit = pickTileHit();
+        updateHoveredTile(hoveredHit ? hoveredHit.tile : null);
+        return;
+      }
+
+      const now = performance.now();
+      const deltaX = event.clientX - interaction.lastX;
+      const deltaY = event.clientY - interaction.lastY;
+
+      if (
+        Math.abs(event.clientX - interaction.downX) > 3 ||
+        Math.abs(event.clientY - interaction.downY) > 3
+      ) {
+        interaction.moved = true;
+      }
+
+      if (interaction.dragMode === "flat") {
+        const viewSize = getViewSizeAtDepth(0);
+        const unitsPerPixelX = viewSize.width / Math.max(container.clientWidth, 1);
+        const unitsPerPixelY = viewSize.height / Math.max(container.clientHeight, 1);
+        const rawX =
+          interaction.startPanX + (event.clientX - interaction.downX) * unitsPerPixelX;
+        const rawY =
+          interaction.startPanY - (event.clientY - interaction.downY) * unitsPerPixelY;
+        const clamped = clampPan(rawX, rawY);
+        flatState.targetX = clamped.x;
+        flatState.targetY = clamped.y;
+
+        const deltaTime = Math.max(16, now - interaction.lastMoveTime);
+        flatState.velocityX = ((event.clientX - interaction.lastX) * unitsPerPixelX / deltaTime) * 16;
+        flatState.velocityY = (-(event.clientY - interaction.lastY) * unitsPerPixelY / deltaTime) * 16;
+      } else {
+        orbitState.targetY += deltaX * 0.0049;
+        orbitState.targetX = clamp(
+          orbitState.targetX - deltaY * 0.0038,
+          sphereConfig.orbitXMin,
+          sphereConfig.orbitXMax
+        );
+      }
+
+      interaction.lastX = event.clientX;
+      interaction.lastY = event.clientY;
+      interaction.lastMoveTime = now;
+      updateHoveredTile(null);
+    }
+
+    function onPointerUp(event) {
+      const clickedHit = !interaction.moved ? pickTileHit() : null;
+      const clickedTile = clickedHit ? clickedHit.tile : null;
+      interaction.dragging = false;
+      container.classList.remove("sphere-scene__viewport--dragging");
+
+      if (container.releasePointerCapture) {
+        try {
+          container.releasePointerCapture(event.pointerId);
+        } catch (error) {
+          // stale pointer id
+        }
+      }
+
+      if (triggerTileAction(clickedHit)) {
+        setSelectedTile(null);
+        updateHoveredTile(null);
+      } else if (clickedTile) {
+        setSelectedTile(clickedTile);
+        updateHoveredTile(clickedTile);
+        viewState.zoomTarget = Math.max(viewState.zoomTarget, 0.82);
+        focusFlatTile(clickedTile);
+      } else if (!interaction.moved) {
+        setSelectedTile(null);
+        updateHoveredTile(null);
+        viewState.zoomTarget = Math.max(0.08, viewState.zoomTarget - 0.22);
+        flatState.targetX *= 0.4;
+        flatState.targetY *= 0.4;
+      }
+    }
+
+    function onPointerLeave() {
+      if (!interaction.dragging) {
+        updateHoveredTile(null);
+      }
+    }
+
+    function onWheel(event) {
+      event.preventDefault();
+      viewState.zoomTarget = clamp(
+        viewState.zoomTarget - event.deltaY * sphereConfig.zoomStep,
+        sphereConfig.minZoom,
+        sphereConfig.maxZoom
+      );
+
+      if (viewState.zoomTarget < 0.24) {
+        setSelectedTile(null);
+      }
+    }
+
+    function updateLayout() {
+      const width = Math.max(container.clientWidth, 1);
+      const height = Math.max(container.clientHeight, 1);
+
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      calloutLines.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      updateFlatLayout();
+      syncPanBounds();
+    }
+
+    function updateTileVisual(tile, time) {
+      const data = tile.userData;
+      data.hover += (data.hoverTarget - data.hover) * 0.18;
+      data.selected += (data.selectedTarget - data.selected) * 0.12;
+
+      const flatten = viewState.flatten;
+      const hoverLift = data.hover * 9 + data.selected * 14;
+      const floatLift =
+        Math.sin(time * 0.001 + data.floatSeed) * (1 - flatten * 0.72) * 4.2;
+
+      tempVectorA.copy(data.spherePosition).addScaledVector(
+        data.normal,
+        hoverLift + floatLift
+      );
+      tempVectorB
+        .copy(data.flatPosition)
+        .set(tempVectorB.x + flatState.x, tempVectorB.y + flatState.y, 0);
+
+      tile.position.copy(tempVectorA.lerp(tempVectorB, flatten));
+      tile.quaternion.copy(data.sphereQuaternion).slerp(data.flatQuaternion, flatten);
+
+      const scale =
+        THREE_LIB.MathUtils.lerp(
+          data.sphereScale,
+          data.flatScale * data.flatFitScale,
+          flatten
+        ) *
+        (getViewportWidth() < 900 ? 0.82 : getViewportWidth() < 1440 ? 0.9 : 1) *
+        (1 + data.hover * 0.04 + data.selected * 0.08);
+      tile.scale.setScalar(scale);
+
+      tile.updateWorldMatrix(true, false);
+      tile.getWorldPosition(tempWorldPosition);
+      tempWorldNormal
+        .set(0, 0, 1)
+        .applyQuaternion(tile.getWorldQuaternion(tempWorldQuaternion));
+      tempToCamera.copy(camera.position).sub(tempWorldPosition).normalize();
+      data.lastFacing = tempWorldNormal.normalize().dot(tempToCamera);
+
+      const facingOpacity = clamp((data.lastFacing + 1) * 0.5, 0.12, 1);
+      const baseOpacity =
+        data.type === "clear"
+          ? THREE_LIB.MathUtils.lerp(0.14, 0.28, flatten)
+          : THREE_LIB.MathUtils.lerp(0.76 + facingOpacity * 0.18, 1, flatten);
+
+      tile.material.opacity = clamp(
+        baseOpacity + data.hover * 0.08 + data.selected * 0.1,
+        0.06,
+        1
+      );
+
+      const brightness = 1 + data.hover * 0.06 + data.selected * 0.08;
+      tile.material.color.setRGB(brightness, brightness, brightness);
+
+      if (data.stackMesh) {
+        data.stackMesh.material.opacity =
+          tile.material.opacity * THREE_LIB.MathUtils.lerp(0.38, 0.14, flatten);
+        data.stackMesh.visible = flatten < 0.92;
+      }
+
+      tile.renderOrder = data.selected > 0.06 ? 40 : data.hover > 0.06 ? 20 : 1;
+    }
+
+    function updateCallout() {
+      const target = interaction.selected;
+
+      if (!target || !target.userData.calloutTitle) {
+        calloutState.opacity += (0 - calloutState.opacity) * 0.22;
+        callout.style.opacity = calloutState.opacity.toFixed(3);
+        calloutPath.setAttribute("opacity", calloutState.opacity.toFixed(3));
+        calloutDot.setAttribute("opacity", calloutState.opacity.toFixed(3));
+        return;
+      }
+
+      target.userData.anchor.getWorldPosition(tempWorldPosition);
+      tempProjected.copy(tempWorldPosition).project(camera);
+
+      if (
+        tempProjected.z < -1 ||
+        tempProjected.z > 1 ||
+        Math.abs(tempProjected.x) > 1.2 ||
+        Math.abs(tempProjected.y) > 1.15
+      ) {
+        calloutState.opacity += (0 - calloutState.opacity) * 0.22;
+        callout.style.opacity = calloutState.opacity.toFixed(3);
+        calloutPath.setAttribute("opacity", calloutState.opacity.toFixed(3));
+        calloutDot.setAttribute("opacity", calloutState.opacity.toFixed(3));
+        return;
+      }
+
+      calloutEyebrow.textContent = target.userData.calloutLabel;
+      calloutTitle.textContent = target.userData.calloutTitle;
+
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      const anchorX = (tempProjected.x * 0.5 + 0.5) * width;
+      const anchorY = (-tempProjected.y * 0.5 + 0.5) * height;
+      const side = tempProjected.x >= 0 ? 1 : -1;
+      const labelWidth = callout.offsetWidth || 170;
+      const labelHeight = callout.offsetHeight || 64;
+      const offsetX = side * (width < 900 ? 74 : 112);
+      const offsetY = width < 900 ? -12 : -20;
+      let targetX = anchorX + offsetX;
+      let targetY = anchorY + offsetY - labelHeight * 0.5;
+
+      if (side < 0) {
+        targetX -= labelWidth;
+      }
+
+      targetX = clamp(targetX, 14, width - labelWidth - 14);
+      targetY = clamp(targetY, 14, height - labelHeight - 14);
+
+      calloutState.x += (targetX - calloutState.x) * 0.24;
+      calloutState.y += (targetY - calloutState.y) * 0.24;
+      const targetOpacity = clamp(
+        0.34 + target.userData.selected * 0.44 + target.userData.hover * 0.24,
+        0,
+        1
+      );
+      calloutState.opacity += (targetOpacity - calloutState.opacity) * 0.2;
+
+      callout.style.transform =
+        `translate3d(${calloutState.x.toFixed(1)}px, ${calloutState.y.toFixed(1)}px, 0)`;
+      callout.style.opacity = calloutState.opacity.toFixed(3);
+
+      const lineTargetX = side > 0 ? calloutState.x : calloutState.x + labelWidth;
+      const lineTargetY = calloutState.y + labelHeight * 0.5;
+      const elbowX = anchorX + side * (width < 900 ? 28 : 42);
+      const elbowY = anchorY + offsetY * 0.3;
+
+      calloutPath.setAttribute(
+        "d",
+        `M ${anchorX.toFixed(1)} ${anchorY.toFixed(1)} ` +
+          `L ${elbowX.toFixed(1)} ${elbowY.toFixed(1)} ` +
+          `L ${lineTargetX.toFixed(1)} ${lineTargetY.toFixed(1)}`
+      );
+      calloutPath.setAttribute("opacity", calloutState.opacity.toFixed(3));
+      calloutDot.setAttribute("cx", anchorX.toFixed(1));
+      calloutDot.setAttribute("cy", anchorY.toFixed(1));
+      calloutDot.setAttribute("opacity", calloutState.opacity.toFixed(3));
+    }
+
+    function hideAmbientCallout(state) {
+      state.opacity += (0 - state.opacity) * 0.2;
+      state.element.style.opacity = state.opacity.toFixed(3);
+      state.path.setAttribute("opacity", state.opacity.toFixed(3));
+      state.markerFrame.setAttribute("opacity", state.opacity.toFixed(3));
+      state.markerCore.setAttribute("opacity", state.opacity.toFixed(3));
+    }
+
+    function updateAmbientCallouts(time) {
+      const ambientStrength = 1 - smoothstep(0.22, 0.62, viewState.zoom);
+
+      ambientCallouts.forEach((state, index) => {
+        const hotspot = ambientHotspots[index];
+
+        if (!hotspot || ambientStrength <= 0.02) {
+          hideAmbientCallout(state);
+          return;
+        }
+
+        tempVectorA.copy(getSphericalNormal(hotspot.pitch, hotspot.yaw));
+        tempVectorB.copy(tempVectorA).multiplyScalar(sphereConfig.sphereRadius + 34);
+        tempVectorB.applyMatrix4(cardGroup.matrixWorld);
+        tempProjected.copy(tempVectorB).project(camera);
+
+        tempWorldNormal.copy(tempVectorA).transformDirection(cardGroup.matrixWorld);
+        tempToCamera.copy(camera.position).sub(tempVectorB).normalize();
+
+        const facing = tempWorldNormal.dot(tempToCamera);
+        const onScreen =
+          tempProjected.z >= -1 &&
+          tempProjected.z <= 1 &&
+          Math.abs(tempProjected.x) <= 1.08 &&
+          Math.abs(tempProjected.y) <= 1.04;
+
+        if (!onScreen) {
+          hideAmbientCallout(state);
+          return;
+        }
+
+        state.eyebrow.textContent = hotspot.label;
+        setAmbientCalloutLines(state, hotspot.lines || [hotspot.title]);
+
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        const anchorX = (tempProjected.x * 0.5 + 0.5) * width;
+        const anchorY = (-tempProjected.y * 0.5 + 0.5) * height;
+        const side = hotspot.side;
+        const labelWidth = state.element.offsetWidth || 180;
+        const labelHeight = state.element.offsetHeight || 68;
+        const offsetX = side * (width < 900 ? 60 : 92);
+        const offsetY = width < 900 ? -18 : -28;
+        let targetX = anchorX + offsetX;
+        let targetY = anchorY + offsetY - labelHeight * 0.5;
+
+        if (side < 0) {
+          targetX -= labelWidth;
+        }
+
+        targetX = clamp(targetX, 10, width - labelWidth - 10);
+        targetY = clamp(targetY, 10, height - labelHeight - 10);
+
+        if (state.opacity <= 0.04) {
+          state.x = targetX;
+          state.y = targetY;
+        }
+
+        state.x += (targetX - state.x) * 0.16;
+        state.y += (targetY - state.y) * 0.16;
+
+        const targetOpacity = clamp((facing - 0.06) / 0.58, 0, 1) * ambientStrength;
+
+        state.opacity += (targetOpacity - state.opacity) * 0.1;
+        state.element.style.transform =
+          `translate3d(${state.x.toFixed(1)}px, ${state.y.toFixed(1)}px, 0)`;
+        state.element.style.opacity = state.opacity.toFixed(3);
+
+        const lineTargetX = side > 0 ? state.x : state.x + labelWidth;
+        const lineTargetY = state.y + labelHeight * 0.5;
+        const elbowX = anchorX + side * (width < 900 ? 22 : 34);
+        const elbowY = anchorY + offsetY * 0.28;
+
+        state.path.setAttribute(
+          "d",
+          `M ${anchorX.toFixed(1)} ${anchorY.toFixed(1)} ` +
+            `L ${elbowX.toFixed(1)} ${elbowY.toFixed(1)} ` +
+            `L ${lineTargetX.toFixed(1)} ${lineTargetY.toFixed(1)}`
+        );
+        state.path.setAttribute("opacity", state.opacity.toFixed(3));
+        state.markerFrame.setAttribute("x", (anchorX - 7).toFixed(1));
+        state.markerFrame.setAttribute("y", (anchorY - 7).toFixed(1));
+        state.markerFrame.setAttribute("opacity", state.opacity.toFixed(3));
+        state.markerCore.setAttribute("x", (anchorX - 4).toFixed(1));
+        state.markerCore.setAttribute("y", (anchorY - 4).toFixed(1));
+        state.markerCore.setAttribute("opacity", state.opacity.toFixed(3));
+      });
+    }
+
+    function animate(time) {
+      viewState.zoom += (viewState.zoomTarget - viewState.zoom) * 0.12;
+      viewState.flatten = smoothstep(0.16, 0.58, viewState.zoom);
+
+      if (!interaction.dragging && viewState.zoom < 0.18) {
+        orbitState.targetY += 0.00125;
+      }
+
+      if (!interaction.dragging && viewState.flatten > 0.55) {
+        flatState.targetX += flatState.velocityX;
+        flatState.targetY += flatState.velocityY;
+        flatState.velocityX *= 0.92;
+        flatState.velocityY *= 0.92;
+
+        const clamped = clampPan(flatState.targetX, flatState.targetY);
+        flatState.targetX = clamped.x;
+        flatState.targetY = clamped.y;
+      } else if (viewState.flatten < 0.28) {
+        flatState.targetX *= 0.88;
+        flatState.targetY *= 0.88;
+        flatState.velocityX *= 0.8;
+        flatState.velocityY *= 0.8;
+      }
+
+      flatState.x += (flatState.targetX - flatState.x) * 0.16;
+      flatState.y += (flatState.targetY - flatState.y) * 0.16;
+
+      const flattenRotation = 1 - smoothstep(0.12, 0.46, viewState.zoom);
+      const viewportWidth = getViewportWidth();
+      const sceneScaleTarget = getSceneScale();
+      const cameraZTarget = THREE_LIB.MathUtils.lerp(
+        viewportWidth < 900 ? 790 : viewportWidth < 1440 ? 760 : 720,
+        viewportWidth < 900 ? 460 : viewportWidth < 1440 ? 540 : 520,
+        viewState.zoom
+      );
+      const cameraYTarget = THREE_LIB.MathUtils.lerp(10, -16, viewState.flatten);
+
+      camera.position.z = THREE_LIB.MathUtils.lerp(camera.position.z, cameraZTarget, 0.08);
+      camera.position.y = THREE_LIB.MathUtils.lerp(camera.position.y, cameraYTarget, 0.08);
+
+      tiltGroup.rotation.z = THREE_LIB.MathUtils.lerp(
+        tiltGroup.rotation.z,
+        orbitState.baseTilt * flattenRotation,
+        0.08
+      );
+      pitchGroup.rotation.x = THREE_LIB.MathUtils.lerp(
+        pitchGroup.rotation.x,
+        orbitState.targetX * flattenRotation,
+        0.08
+      );
+      cardGroup.rotation.y = THREE_LIB.MathUtils.lerp(
+        cardGroup.rotation.y,
+        orbitState.targetY * flattenRotation,
+        0.08
+      );
+      const nextScale = THREE_LIB.MathUtils.lerp(
+        cardGroup.scale.x,
+        sceneScaleTarget,
+        0.12
+      );
+      cardGroup.scale.setScalar(nextScale);
+
+      sphereCore.material.uniforms.uOpacity.value =
+        THREE_LIB.MathUtils.lerp(0.22, 0.02, viewState.flatten);
+      wireSphere.material.opacity = THREE_LIB.MathUtils.lerp(0.24, 0.02, viewState.flatten);
+      wireSphere.rotation.y += 0.0014 * (1 - viewState.flatten * 0.7);
+      wireSphere.rotation.x = Math.sin(time * 0.00034) * 0.18;
+
+      tileMeshes.forEach((tile) => updateTileVisual(tile, time));
+
+      camera.lookAt(0, 0, 0);
+      updateCallout();
+      updateAmbientCallouts(time);
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    }
+
+    async function initScene() {
+      const fontReady = document.fonts ? document.fonts.ready.catch(() => null) : Promise.resolve();
+      const imageMap = await preloadCardImages(cardItems);
+      await fontReady;
+
+      createTiles(imageMap);
+      updateLayout();
+
+      container.addEventListener("pointerdown", onPointerDown);
+      container.addEventListener("pointermove", onPointerMove);
+      container.addEventListener("pointerup", onPointerUp);
+      container.addEventListener("pointerleave", onPointerLeave);
+      container.addEventListener("pointercancel", onPointerUp);
+      container.addEventListener("wheel", onWheel, { passive: false });
+      window.addEventListener("resize", updateLayout);
+
+      requestAnimationFrame(animate);
+    }
+
+    initScene();
+  })();
+}
+
+// sphere bundle scene: end
